@@ -1,0 +1,35 @@
+<dialog class="resume-dialog" id="resume" aria-labelledby="resume-title" aria-describedby="resume-intro">
+  <div class="resume-inner">
+    <div class="resume-bar">
+      <h2 id="resume-title">이력서</h2>
+      <a class="close-control" href="#main" data-close-resume aria-label="이력서 닫기">닫기</a>
+    </div>
+    <div class="resume-identity">
+      <h3>{{ profile.name }}</h3>
+      <span class="profession">{{ profile.title }}</span>
+    </div>
+    <p class="resume-intro" id="resume-intro">{{ profile.intro }}</p>
+    <section class="resume-section" aria-labelledby="resume-projects">
+      <h3 id="resume-projects">프로젝트 경험</h3>
+      <ul class="experience-list">
+        {% for p in projects %}
+        <li>
+          <a href="{{ root }}projects/{{ p.slug }}/">
+            <strong>{{ p.name }}</strong>
+            <span>{{ p.role }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section class="resume-section" aria-labelledby="resume-skills">
+      <h3 id="resume-skills">기술</h3>
+      <dl class="skills">
+        {% for skill in profile.skills %}
+        <div><dt>{{ skill.area }}</dt><dd>{{ skill.tools }}</dd></div>
+        {% endfor %}
+      </dl>
+    </section>
+    <a class="text-link" href="{{ profile.github }}">GitHub 프로필</a>
+  </div>
+</dialog>

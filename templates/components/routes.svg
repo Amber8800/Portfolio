@@ -1,0 +1,12 @@
+<svg class="routes" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false" fill="none">
+  <defs>
+    <linearGradient id="course-light" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#92a8c3" stop-opacity=".47"/>
+      <stop offset=".55" stop-color="#9eb5d2" stop-opacity=".60"/>
+      <stop offset="1" stop-color="#d0dcec" stop-opacity=".84"/>
+    </linearGradient>
+  </defs>
+  <circle class="flight-course" r="1" stroke="url(#course-light)"
+          transform="matrix({{ orbit.rx }} {{ orbit.tilt_y }} 0 {{ orbit.ry }} {{ orbit.cx }} {{ orbit.cy }})"
+          vector-effect="non-scaling-stroke" stroke-width="1.25"/>
+</svg>

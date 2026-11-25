@@ -1,0 +1,39 @@
+order = 1
+name = "VISHUE"
+stage = "최종 프로젝트"
+summary = "피부 분석 모델과 화장품 추천"
+role = "피부 모델 학습 · 기기 내 추론"
+contribution = "피부 이미지를 분류하는 모델을 학습하고, ONNX로 변환해 기기에서 분석 결과를 받아볼 수 있도록 구현했습니다."
+problem = "피부 상태를 측정해 제품 추천에 쓰려면 얼굴 사진을 다뤄야 합니다. 팀은 사용자의 사진을 기기에 보관하면서 모공·색소침착·주름과 피부 타입을 분석하는 방식을 택했습니다."
+decision = "같은 데이터 분할에서 손실 함수와 최적화 방법을 비교했습니다. 드문 등급의 표본 수를 고려해 클래스 가중치를 조정하고, 실제 앱에서는 미세 등급 대신 양호·유의 판정으로 결과를 전달합니다."
+result = "사람 단위로 나눈 동일한 테스트 분할(138명, 관심 영역 822개)에서 모공 유의 등급(3–5등급)의 재현율을 비교했습니다. 고정 전처리를 제거하면 56.33%, Unsharp 75%와 대비 보정을 적용하면 61.39%였습니다. 전체 Macro-F1은 각각 0.6575와 0.6459였고, 4·5등급 놓침률은 두 조건 모두 32.08%였습니다."
+stack = ["PyTorch", "MobileNetV3", "ONNX Runtime"]
+
+[media]
+image = "screen.webp"
+alt = "VISHUE 뷰티 AI에서 건성 피부 보습 크림을 요청하고 조건에 맞는 제품을 확인하는 화면"
+caption = "뷰티 AI · 팀 검증 화면의 테스트 제품 추천"
+source = "https://github.com/gyuniverse-hq/SKN34-Final-Project/pull/284"
+width = 1302
+height = 904
+logo = "logo.webp"
+logo_source = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-2TEAM/blob/9e8999dd5a3f2622c54d1787a776d4990bbcf9d0/assets/images/android-icon-foreground.png"
+
+[metric]
+label = "모공 전처리 비교"
+measure = "유의 등급 재현율"
+brief_measure = "모공 유의 등급 재현율"
+brief_conditions = "고정 전처리 제외 → 적용"
+before = "56.33%"
+after = "61.39%"
+before_label = "고정 전처리 제외"
+after_label = "고정 전처리 적용"
+context = "동일 테스트 분할 · 138명 · 822개 피부 영역"
+
+[[links]]
+label = "팀 저장소"
+url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-2TEAM"
+
+[[links]]
+label = "전처리 비교 실험 원문"
+url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-FINAL-2TEAM/blob/9e8999dd5a3f2622c54d1787a776d4990bbcf9d0/reports/skin-analysis/skin-binary-bundle-20261101/reports/pore/report.md#최종-test-비교"

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "components/briefing.html" import briefing %}
+{% block body_class %}bridge-home{% endblock %}
+{% block head %}
+  <link rel="stylesheet" href="{{ root }}assets/css/bridge.css">
+  <link rel="preload" as="image" href="{{ root }}assets/bridge/deep-space.webp">
+  <link rel="preload" as="image" href="{{ root }}assets/bridge/frame.webp">
+  <script defer src="{{ root }}assets/js/bridge.js"></script>
+  <script defer src="{{ root }}assets/js/scene-motion.js"></script>
+{% endblock %}
+{% block environment %}
+  <div class="space-window" aria-hidden="true"><div class="starlight"></div></div>
+  <div class="bridge-frame" aria-hidden="true"></div>
+  <div class="console-light" aria-hidden="true"></div>
+{% endblock %}
+{% block content %}
+  <main id="main" class="flight-deck" tabindex="-1">
+    <div class="map-toolbar">
+      <h1 id="selector-title" class="map-heading">프로젝트 선택</h1>
+      <button type="button" class="motion-toggle" hidden>모션 멈춤</button>
+    </div>
+    <div class="star-chart" style="--cx:{{ orbit.cx }};--cy:{{ orbit.cy }};--rx:{{ orbit.rx }};--ry:{{ orbit.ry }};--tilt-y:{{ orbit.tilt_y }}">
+      {% include "components/selector.html" %}
+      <div class="brief-overlay">
+        {% for p in projects %}{{ briefing(p, root, loop.first) }}{% endfor %}
+      </div>
+    </div>
+    <span class="sr-only" role="status" id="selection-status"></span>
+  </main>
+{% endblock %}

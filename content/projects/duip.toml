@@ -1,0 +1,25 @@
+order = 3
+name = "두잎"
+stage = "2차 프로젝트"
+summary = "정기후원자 이탈 예측 대시보드"
+role = "팀 PM · 예측 모델 학습"
+brief_contribution = "분류 모델 6종 비교와 XGBoost 일괄 예측 연동"
+contribution = "팀 PM을 맡아 후원 데이터를 전처리하고 분류 모델을 학습했습니다. 모델별 성능을 비교할 수 있는 히스토리 화면도 구현했습니다."
+problem = "정기후원 단체가 제한된 시간 안에 누구에게 먼저 연락할지 판단하려면 후원자별 이탈 위험을 살펴볼 수 있어야 합니다."
+decision = "기빙코리아 개인기부자 조사 데이터를 학습에 사용했습니다. 여러 분류 모델의 성능을 비교하고, XGBoost 예측을 CSV·Excel 명단의 일괄 처리 흐름에 연결했습니다."
+result = "팀 대시보드에서 명단을 올리면 후원자별 이탈 위험도를 확인할 수 있습니다. 모델 히스토리에서는 실험한 분류 모델을 같은 화면에서 비교할 수 있습니다."
+stack = ["Python", "XGBoost", "scikit-learn"]
+
+[media]
+image = "screen.webp"
+alt = "두잎 모델 히스토리에서 여섯 분류 모델의 테스트 정확도를 비교하는 막대그래프"
+caption = "모델 히스토리 · 분류 모델 6종 비교"
+source = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-2nd-6Team/blob/2d9511c2f63d6b4b335ce7c87f6d99cd620a75ad/donor-churn-dashboard/public/features/models-preview.gif"
+width = 536
+height = 304
+logo = "logo.webp"
+logo_source = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-2nd-6Team/blob/2d9511c2f63d6b4b335ce7c87f6d99cd620a75ad/donor-churn-dashboard/public/doeep-mark.png"
+
+[[links]]
+label = "팀 저장소"
+url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-2nd-6Team"

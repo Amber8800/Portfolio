@@ -1,0 +1,16 @@
+name = "황호순"
+title = "ML / AI Engineer"
+github = "https://github.com/Amber8800"
+intro = "피부 이미지 분류, 문서 검색 기반 질의응답, 후원자 이탈 예측 프로젝트에서 모델을 학습하고 그 결과를 서비스에 연결했습니다."
+
+[[skills]]
+area = "모델 학습·추론"
+tools = "Python, PyTorch, scikit-learn, XGBoost, ONNX Runtime"
+
+[[skills]]
+area = "검색·백엔드"
+tools = "LangChain, LangGraph, Elasticsearch, FastAPI"
+
+[[skills]]
+area = "배포·협업"
+tools = "Docker, AWS, GitHub Actions"

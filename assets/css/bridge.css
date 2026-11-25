@@ -1,0 +1,337 @@
+@property --orbit-turn {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.space-window, .bridge-frame, .console-light { position: absolute; pointer-events: none; }
+.space-window {
+  inset: 0; z-index: -3; overflow: hidden;
+  background: #0b1020 url("../bridge/deep-space.webp") center 72% / cover no-repeat;
+}
+/* Only the upper sky drifts. The horizon, window and console stay registered. */
+.space-window::before {
+  content: ""; position: absolute; inset: 0; background: inherit;
+  mask-image: linear-gradient(#000 42%, transparent 77%);
+  animation: nebula-drift 26s ease-in-out infinite alternate;
+}
+@keyframes nebula-drift {
+  from { transform: scale(1.045) translate(-.9%, -.3%); }
+  to { transform: scale(1.045) translate(1.15%, .5%); }
+}
+.starlight { position: absolute; inset: 0; overflow: hidden; mask-image: linear-gradient(#000 65%, transparent 89%); }
+.starlight::before, .starlight::after {
+  content: ""; position: absolute; inset: -30px -320px;
+  background: url("../bridge/star-drift.svg") repeat; pointer-events: none;
+}
+.starlight::before { opacity: .51; background-size: 244px 179px; animation: far-stars 160s linear infinite; }
+.starlight::after { opacity: .76; background-size: 311px 228px; background-position: 57px 69px; animation: near-stars 78s linear infinite; }
+@keyframes far-stars { to { transform: translate3d(-244px, 0, 0); } }
+@keyframes near-stars { to { transform: translate3d(-311px, 0, 0); } }
+.bridge-frame { inset: 0; z-index: -2; background: url("../bridge/frame.webp") center / 100% 100% no-repeat; }
+.console-light {
+  bottom: 9.15%; left: 47%; width: 6%; height: 1px;
+  background: linear-gradient(90deg, transparent, #c08d49aa, transparent);
+}
+
+.bridge-home .site-footer { min-height: clamp(56px, 14svh, 155px); }
+.flight-deck {
+  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  padding: clamp(15px, 2.8svh, 38px) 5.1% clamp(10px, 2.4svh, 32px);
+}
+.map-toolbar {
+  position: relative; display: grid; align-items: center; justify-items: center;
+  min-height: 42px; margin: 0 1.5%;
+}
+.map-heading {
+  display: flex; align-items: center; gap: .75em; line-height: 1.2;
+  font-size: clamp(1.25rem, 1.82vw, 2rem); letter-spacing: -.04em; text-shadow: 0 2px 9px #060b14;
+}
+.map-heading::before, .map-heading::after {
+  content: ""; width: clamp(21px, 3.2vw, 57px); height: 1px;
+  background: linear-gradient(90deg, transparent, #c1b098ab);
+}
+.map-heading::after { transform: scaleX(-1); }
+.motion-toggle {
+  position: absolute; right: 0; min-height: 36px; display: inline-flex; align-items: center; gap: .48rem;
+  padding: .3rem .6rem; border: 1px solid #78859866; border-radius: 2px;
+  color: #cdd4df; background: #0a101bc2; font-size: .8rem;
+}
+.motion-toggle::before {
+  content: ""; width: 7px; height: 9px; box-sizing: border-box;
+  border-inline: 2px solid currentColor;
+}
+.motion-paused .motion-toggle::before {
+  width: 0; height: 0; border: 0; border-block: 4px solid transparent; border-left: 7px solid currentColor;
+}
+.motion-toggle:hover { color: #fff; border-color: #a9b3c2; }
+.star-chart {
+  --hud-pin: 39; --hud-title-height: 2.9rem;
+  --hud-width: clamp(244px, 23cqw, 322px);
+  --hud-left: max(3.1cqw, calc(31cqw - var(--hud-width)));
+  position: relative; isolation: isolate; flex: 1; min-height: clamp(355px, 60svh, 425px); container-type: size;
+}
+.orbit-map {
+  --orbit-turn: 0; --unit: clamp(160px, min(21.2vw, 48cqh), 338px);
+  position: absolute; inset: 0; margin: 0; isolation: isolate; container-type: size;
+  transition: --orbit-turn 420ms cubic-bezier(.36, .05, .2, 1);
+}
+.orbit-map.instant { transition: none; }
+.routes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.planet-choice {
+  --depth-scale: var(--initial-scale);
+  position: absolute; top: var(--initial-y); left: var(--initial-x);
+  width: calc(var(--unit) * var(--depth-scale)); aspect-ratio: 1; display: block; transform: translate(-50%, -50%);
+  border: 0; border-radius: 50%; padding: 0; background: transparent; text-align: left; isolation: isolate;
+}
+@supports (left: calc(1% * cos(0deg))) {
+  .planet-choice, .is-binary .world, .hud-leader {
+    --theta: calc(var(--base) + var(--orbit-turn) * 1deg + var(--body-offset, 0deg));
+    --depth: cos(var(--theta));
+    --phase: atan2(calc(sqrt(2.4) * sin(var(--theta))), calc(1.7 * var(--depth) - .7));
+    --u: sin(var(--phase));
+    --v: cos(var(--phase));
+    --course-x: calc(var(--cx) + var(--rx) * var(--u));
+    --course-y: calc(var(--cy) + var(--tilt-y) * var(--u) + var(--ry) * var(--v));
+  }
+  .planet-choice {
+    --system-x: var(--course-x);
+    --system-y: var(--course-y);
+    --depth-scale: calc(1 / (2.4 - 1.4 * var(--depth)));
+    top: calc(var(--system-y) * 1%);
+    left: calc(var(--system-x) * 1%);
+    z-index: calc(1 + 20 * var(--depth-scale));
+  }
+}
+.hud-leader { display: none; }
+@supports (width: hypot(1px, 2px)) {
+  .hud-leader {
+    --base: var(--focus-base, 0deg);
+    --dx: calc(var(--course-x) * 1cqw - var(--hud-left) - var(--hud-width));
+    --dy: calc((var(--course-y) - var(--hud-pin)) * 1cqh);
+    display: block; position: absolute; pointer-events: none;
+    top: calc(var(--hud-pin) * 1% - .5px); left: calc(var(--hud-left) + var(--hud-width));
+    width: hypot(var(--dx), var(--dy)); height: 1px;
+    transform-origin: 0 50%; transform: rotate(atan2(var(--dy), var(--dx)));
+    background: linear-gradient(90deg, #cfaa70ba, #d6b7858c);
+  }
+}
+.planet-choice:focus-visible { outline-color: var(--focus); outline-offset: 6px; }
+.planet-system, .world, .crust, .rotating-surface, .world::after { position: absolute; border-radius: 50%; }
+.planet-system { inset: 0; }
+.world {
+  width: 100%; aspect-ratio: 1; left: 50%; top: 50%; overflow: hidden;
+  background: #504a63; border: 1px solid #bfc5dc86; z-index: 1;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 7px #c2c6e338, 1px 5px 16px #03050b81;
+}
+.crust, .rotating-surface { inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.crust { object-fit: cover; }
+.world::after {
+  content: ""; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 115% 110% at 73% 6%, #f0f3ff26, #a3aec80a 24%, #2a34504a 43%, #0e1729bf 64%, #060b16f0 88%);
+  box-shadow: inset -2px 2px 6px #cfdbff77, inset 3px -1px 6px #738ac559;
+}
+.is-binary .world { width: 63%; left: 30%; top: 43%; }
+.is-binary .companion { width: 55%; left: 71%; top: 56%; filter: saturate(.68) brightness(.91); }
+@media (min-width: 900px) {
+  @supports (left: calc(1cqw * cos(0deg))) {
+    /* Keep each member on the course and the pair close at any window width. */
+    .is-binary .world {
+      --pair-offset: atan2(calc(var(--unit) * .20), calc(var(--rx) * 1.55cqw));
+      --body-offset: calc(-1 * var(--pair-offset));
+      left: calc(50% + (var(--course-x) - var(--system-x)) * 1cqw);
+      top: calc(50% + (var(--course-y) - var(--system-y)) * 1cqh);
+    }
+    .is-binary .companion { --body-offset: calc(1.1 * var(--pair-offset)); }
+  }
+  .planet-choice[aria-pressed="true"] .planet-label { visibility: hidden; }
+}
+.selection-ring {
+  --sweep-period: 9s;
+  position: absolute; visibility: hidden; pointer-events: none;
+  top: 50%; left: 50%; width: 178%; height: auto; overflow: visible;
+  transform: translate(-50%, -50%) rotate(15deg); stroke: #e5b26a; stroke-width: .95;
+}
+.ring-back { --arc-start: 0; opacity: .77; }
+.ring-front { --arc-start: 180; z-index: 2; }
+.ring-rail { stroke-width: 1.65; stroke-dasharray: 33 7 4 16; opacity: .73; }
+.ring-ticks { stroke-width: 1.3; stroke-dasharray: .55 8.45; opacity: .79; }
+.ring-scan, .ring-marker {
+  --signal-start: 234;
+  stroke: #ffd895; stroke-linecap: round;
+  stroke-dashoffset: calc((var(--arc-start) - var(--signal-start)) * 1px);
+}
+.ring-scan { stroke-width: 1.9; stroke-dasharray: 16 344; }
+.ring-marker {
+  --signal-start: 250;
+  stroke: #fff1c8; stroke-width: 2.85; stroke-dasharray: .55 359.45;
+}
+.planet-choice[aria-pressed="true"] .selection-ring { visibility: visible; }
+
+/* Each half covers 180 path units. Their phases meet at either limb. */
+@keyframes ring-sweep {
+  from { stroke-dashoffset: 0px; }
+  to { stroke-dashoffset: -360px; }
+}
+@keyframes ring-index {
+  from { stroke-dashoffset: 0px; }
+  to { stroke-dashoffset: 60px; }
+}
+@keyframes ring-acquire {
+  from { stroke: #ffe6b3; stroke-width: 1.85; }
+  to { stroke: #e5b26a; stroke-width: .95; }
+}
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .planet-choice[aria-pressed="true"] :is(.ring-scan, .ring-marker) {
+    animation: ring-sweep var(--sweep-period) linear infinite;
+    animation-delay: calc((var(--arc-start) - var(--signal-start)) / 360 * var(--sweep-period));
+    animation-play-state: var(--scene-play, paused);
+  }
+  .planet-choice[aria-pressed="true"] .ring-rail {
+    animation: ring-index 6s linear infinite; animation-play-state: var(--scene-play, paused);
+  }
+  .scene-playing .planet-choice[aria-pressed="true"] .ring-track { animation: ring-acquire 320ms ease-out; }
+}
+.planet-label {
+  position: absolute; top: -13%; left: calc(85% + .8rem); display: grid; justify-items: start;
+  gap: .18rem; width: max-content; max-width: 8.5rem; text-shadow: 0 1px 6px #080b12, 0 2px 9px #000;
+}
+.planet-label::before {
+  content: ""; position: absolute; right: 100%; top: .98rem; width: 1.1rem; height: .65rem;
+  border-bottom: 1px solid #b1c3d4; transform: skewY(-34deg); transform-origin: right bottom;
+}
+.planet-label strong {
+  font-size: clamp(1.12rem, 1.62vw, 1.75rem); letter-spacing: -.02em; line-height: 1.15;
+  padding-bottom: .17rem; border-bottom: 1px solid #afc2d4ad;
+}
+.planet-label small { font-size: .77rem; color: #c1cbd6; line-height: 1.45; }
+.planet-choice:hover .planet-label strong { color: #fff; border-color: #fff; }
+
+.brief-overlay {
+  position: absolute; z-index: 2; left: var(--hud-left);
+  top: calc(var(--hud-pin) * 1% - var(--hud-title-height)); width: var(--hud-width);
+  pointer-events: none;
+}
+.briefing {
+  --brief-pad: .35rem;
+  position: relative; isolation: isolate; color: #f2f1ee;
+  text-shadow: 0 1px 5px #03070e;
+}
+.briefing::before {
+  content: ""; position: absolute; z-index: -1; pointer-events: none; inset: -.55rem -1rem -.8rem -.8rem;
+  background: linear-gradient(90deg, #09111bda, #0b1320bc 70%, transparent);
+  mask-image: linear-gradient(0deg, transparent, #000 15%, #000 84%, transparent);
+}
+.briefing a { pointer-events: auto; }
+.briefing .project-title {
+  position: relative; height: var(--hud-title-height); gap: .66rem;
+  padding: 0 var(--brief-pad) .34rem; border-bottom: 1px solid #d3aa6ebf;
+}
+.briefing .project-title::after {
+  content: ""; position: absolute; right: -2px; bottom: -2px; width: 4px; height: 4px;
+  border-radius: 50%; background: #ecc48a;
+}
+.briefing .project-title h2 { font-size: clamp(1.72rem, 2.47vw, 2.75rem); }
+.briefing .project-mark { width: 22px; height: 22px; border-radius: 3px; }
+.brief-summary { margin: .63rem var(--brief-pad) 0; font-size: clamp(.98rem, 1.26vw, 1.27rem); font-weight: 700; line-height: 1.37; letter-spacing: -.045em; }
+.briefing .brief-role { margin: .21rem var(--brief-pad) 0; font-size: .9rem; gap: .48rem; line-height: 1.55; }
+.brief-evidence {
+  display: flex; gap: .62rem; align-items: center;
+  margin: .75rem var(--brief-pad) 0;
+}
+.brief-evidence .service-figure { flex: 0 0 40%; }
+.brief-evidence .service-figure a { display: block; }
+.brief-evidence .service-figure img {
+  height: auto; aspect-ratio: 1.35; object-fit: contain; border: 1px solid #74809499;
+  border-radius: 2px; background: #151b26;
+}
+.brief-evidence .service-figure figcaption {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.brief-metric, .brief-highlight { font-size: .81rem; color: #e0e6ef; line-height: 1.5; }
+.brief-metric .brief-values { margin: .1rem 0; font-size: clamp(.93rem, 1.22vw, 1.32rem); font-variant-numeric: tabular-nums; white-space: nowrap; color: #e7ebf1; }
+.brief-values strong { color: #f1bf79; }
+.brief-metric small { display: block; font-size: .73rem; color: #c2cbd7; }
+.detail-link {
+  display: inline-flex; gap: .7rem; align-items: center; min-height: 37px;
+  margin: .64rem var(--brief-pad) .62rem; padding: .34rem .7rem; border: 1px solid #cb9f61b3; border-radius: 2px;
+  color: #f4ce93; background: #382c1d91; font-size: .92rem; font-weight: 700; text-decoration: none;
+}
+.detail-link::after { content: ""; width: .38rem; height: .38rem; border-top: 1.5px solid; border-right: 1.5px solid; transform: rotate(45deg); }
+.detail-link:hover { color: #20170e; background: #e8b977; text-shadow: none; }
+.static-projects { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; padding: 1.25rem 0; }
+.static-projects a { padding: .6rem .9rem; background: #121824ec; }
+
+@keyframes edge-on { from { filter: brightness(.58); } to { filter: brightness(1); } }
+@keyframes route-on { from { opacity: .15; } to { opacity: 1; } }
+@keyframes lamp-on { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rule-on { from { border-color: #79694d; } to { border-color: #d3aa6ebf; } }
+.booting .bridge-frame { animation: edge-on 180ms both; }
+.booting .console-light { animation: lamp-on 140ms 180ms both; }
+.booting .planet-system { animation: edge-on 240ms 320ms both; }
+.booting .routes { animation: route-on 240ms 320ms both; }
+.booting .briefing .project-title { animation: rule-on 240ms 560ms both; }
+.motion-paused .orbit-map { transition: none; }
+.space-window::before, .starlight::before, .starlight::after { animation-play-state: var(--scene-play, paused); }
+.scene-playing { --scene-play: running; }
+
+@media (max-width: 899px) {
+  .bridge-home .site-header { background: #10151eee; border-bottom: 1px solid #515a68; }
+  .space-window { background-position: 42% top; }
+  .bridge-frame, .console-light, .routes, .hud-leader { display: none; }
+  .flight-deck { flex: none; width: min(100%, 680px); margin: 0 auto; padding: 22px 20px 12px; }
+  .map-toolbar { margin: 0 0 .65rem; justify-items: start; }
+  .map-heading { font-size: 1.35rem; }
+  .map-heading::before, .map-heading::after { display: none; }
+  .star-chart { display: flex; flex-direction: column; gap: 16px; container-type: normal; min-height: 0; }
+  .orbit-map { position: relative; inset: auto; display: grid; gap: 4px; container-type: normal; transition: none; }
+  .planet-choice {
+    position: relative; top: auto; left: auto; display: flex; align-items: center; gap: .65rem;
+    width: 100%; height: auto; aspect-ratio: auto; min-height: 53px; padding: 1px .65rem;
+    background: #111722e8; border: 1px solid #465060; border-radius: 3px; transform: none;
+  }
+  .planet-choice[aria-pressed="true"] { background: #25221de8; border-color: #bc9256; }
+  .planet-system { position: relative; inset: auto; display: block; flex: 0 0 42px; height: 42px; }
+  .planet-system .world { width: 72%; }
+  .is-binary .planet-system .world { width: 54%; }
+  .is-binary .planet-system .companion { width: 48%; }
+  .selection-ring { display: none; }
+  .planet-choice[aria-pressed="true"] .planet-system::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--amber);
+    background: radial-gradient(circle at 50% 2px, #ffe1a4 1px, transparent 2px);
+  }
+  .planet-label { position: static; display: flex; align-items: baseline; gap: .65rem; max-width: none; }
+  .planet-label strong { padding: 0; border: none; font-size: 1.12rem; }
+  .planet-label::before { display: none; }
+  .brief-overlay { position: static; width: auto; }
+  .briefing { padding: 16px; background: #0d1420eb; border: 1px solid #65717e8c; pointer-events: auto; }
+  .briefing::before { display: none; }
+  .briefing .project-title { padding: 0 0 .45rem; }
+  .briefing .project-title h2 { font-size: 2.05rem; }
+  .briefing .project-title::after { display: none; }
+  .brief-summary { margin: .75rem 0 0; font-size: 1.17rem; }
+  .briefing .brief-role { margin: .3rem 0 0; font-size: .95rem; }
+  .brief-evidence { display: grid; gap: .65rem; margin: .85rem 0 0; padding-top: .8rem; border-top: 1px solid #71809454; }
+  .brief-evidence .service-figure img { aspect-ratio: auto; height: auto; max-height: 225px; }
+  .brief-evidence .service-figure figcaption {
+    position: static; width: auto; height: auto; clip-path: none; white-space: normal;
+  }
+  .brief-highlight, .brief-metric { font-size: .9rem; }
+  .brief-metric .brief-values { font-size: 1.35rem; }
+  .detail-link { min-height: 44px; margin: .9rem 0 0; }
+  .bridge-home .site-footer { min-height: 50px; margin-top: auto; }
+}
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) {
+  .planet-choice[aria-pressed="true"] .planet-system::after {
+    animation: mobile-ring 9s linear infinite; animation-play-state: var(--scene-play, paused);
+  }
+}
+@keyframes mobile-ring { to { transform: rotate(1turn); } }
+@media (max-width: 400px) { .flight-deck { padding-inline: 14px; } }
+@media (prefers-reduced-motion: reduce) {
+  .orbit-map { transition: none; }
+  .space-window::before, .starlight::before, .starlight::after,
+  .booting .bridge-frame, .booting .console-light, .booting .planet-system,
+  .booting .routes, .booting .briefing .project-title { animation: none; }
+}

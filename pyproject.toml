@@ -1,0 +1,9 @@
+[project]
+name = "bridge-portfolio"
+version = "0.1.0"
+description = "황호순의 프로젝트 포트폴리오"
+requires-python = ">=3.11"
+dependencies = ["jinja2>=3.1.6,<4"]
+
+[tool.uv]
+package = false

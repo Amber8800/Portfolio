@@ -1,0 +1,32 @@
+order = 2
+name = "창업ON"
+stage = "3·4차 프로젝트"
+paired = true
+summary = "창업자를 위한 정책·세무 AI"
+role = "검색·챗봇 개발 · AWS 배포"
+brief_contribution = "LangGraph 챗봇 구현과 사업계획서 PDF 출력"
+contribution = "LangGraph 챗봇을 구현한 뒤 검색 방식을 비교·평가하고, 사업계획서 PDF 출력과 AWS 배포를 담당했습니다."
+problem = "청년·1인 창업자는 기관마다 흩어진 정책 공고와 세법 자료를 확인해야 합니다. 창업ON은 질문에 대한 답과 그 근거를 같은 화면에서 읽을 수 있도록 만든 서비스입니다."
+decision = "3차에서 정책·세무 문서를 검색하는 챗봇을 만들고, 4차에서는 같은 서비스 안에서 사업계획서를 작성하고 출력할 수 있도록 기능을 확장했습니다."
+result = "문서 기반 질의응답에서 사업계획서 작성·PDF 출력까지 이어지는 흐름을 제공했습니다. 팀 시연에서 사업자 정보를 입력하는 과정과 서비스 화면을 확인할 수 있습니다."
+stack = ["LangGraph", "Elasticsearch", "AWS"]
+
+[media]
+image = "screen.webp"
+alt = "사업계획서 작성을 시작하며 업종, 창업 상태와 팀 구성을 입력하는 창업ON 화면"
+caption = "사업계획서 작성 · 사업자 기초 정보 입력"
+source = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-3Team/blob/8e908cf1f8e3cb493b2767e703ee129dcf29ca9f/Docs/data/gifs/7_%EC%82%AC%EC%97%85%EA%B3%84%ED%9A%8D%EC%84%9C_%EC%9E%91%EC%84%B1.gif"
+width = 1880
+height = 864
+logo = "logo.webp"
+logo_source = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-3Team/blob/8e908cf1f8e3cb493b2767e703ee129dcf29ca9f/Frontend/public/pwa-192x192.png"
+
+[[links]]
+label = "3차 · 챗봇 개발"
+url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-3rd-3Team"
+work = "LangGraph로 정책·세무 질문을 처리하는 챗봇을 구현했습니다."
+
+[[links]]
+label = "4차 · 서비스 확장"
+url = "https://github.com/SKNETWORKS-FAMILY-AICAMP/SKN34-4th-3Team"
+work = "RAG 검색 실험, 사업계획서 기능과 PDF 출력, AWS 인프라와 배포를 맡았습니다."

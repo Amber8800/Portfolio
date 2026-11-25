@@ -1,0 +1,19 @@
+<footer class="site-footer">
+  <details class="credits">
+    <summary>이미지 출처</summary>
+    <div class="credit-sheet">
+      <p>행성 표면은 <a href="https://www.solarsystemscope.com/textures/">Solar System Scope / INOVE</a>의 Moon, Venus Surface, Mercury 지도를 축소하고 색을 조정해 사용했습니다. <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p>
+      <p>창밖 우주와 함교 프레임은 이 포트폴리오를 위해 생성한 이미지입니다.</p>
+      <ul>
+        {% for p in projects %}
+        {% if p.media.get('source') or p.media.get('logo_source') %}
+        <li><strong>{{ p.name }}</strong>
+          {% if p.media.get('source') %}<a href="{{ p.media.source }}">팀 시연 화면</a>{% endif %}
+          {% if p.media.get('logo_source') %}<a href="{{ p.media.logo_source }}">팀 로고</a>{% endif %}
+        </li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+</footer>
