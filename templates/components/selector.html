@@ -1,29 +1,21 @@
-{% from "components/hud-ring.svg" import ring_half %}
-  <form class="orbit-map" aria-labelledby="selector-title" data-orbit>
-    {% include "components/routes.svg" %}
-    <span class="hud-leader" aria-hidden="true"></span>
+{% from "components/planet-system.html" import foreground_courses, planet_system %}
+  <form id="project-orbits" class="orbit-map" aria-labelledby="selector-title" data-orbit>
+    <div class="route-field" aria-hidden="true">{% include "components/routes.svg" %}</div>
+    <span class="system-star" aria-hidden="true">{{ foreground_courses() }}</span>
     {% for p in projects %}
     <button class="planet-choice{% if p.get('paired') %} is-binary{% endif %}" type="submit"
             formaction="{{ root }}projects/{{ p.slug }}/" formmethod="get"
-            data-project="{{ p.slug }}" aria-pressed="{{ 'true' if loop.first else 'false' }}"
-            aria-controls="brief-{{ p.slug }}" aria-label="{{ p.name }}, {{ p.stage }}"
-            style="--base:{{ p.angle }}deg;--initial-x:{{ p.x }}%;--initial-y:{{ p.y }}%;--initial-scale:{{ p.scale }}">
-      <span class="planet-system" aria-hidden="true">
-        {{ ring_half('back') }}
-        {% for body in range(2 if p.get('paired') else 1) %}
-        <span class="world{% if body %} companion{% endif %}">
-          <img class="crust" src="{{ root }}assets/bridge/{{ p.slug }}.webp" alt="" width="768" height="384" draggable="false">
-          <canvas class="rotating-surface" width="1" height="1"></canvas>
-        </span>
-        {% endfor %}
-        {{ ring_half('front') }}
-      </span>
+            data-project="{{ p.slug }}" data-camera-distance="{{ p.camera_distance }}"
+            aria-pressed="{{ 'true' if loop.first else 'false' }}"
+            aria-controls="project-briefing" aria-label="{{ p.name }}, {{ p.stage }}"
+            style="--base:{{ p.angle }}deg;--radius:{{ p.orbit.radius }};--initial-x:{{ p.x }}%;--initial-y:{{ p.y }}%;--initial-scale:{{ p.scale }}">
+      {{ planet_system(p, root) }}
       <span class="planet-label"><strong>{{ p.name }}</strong><small>{{ p.stage }}</small></span>
     </button>
     {% endfor %}
   </form>
   <noscript>
-    <style>.orbit-map { display: none }</style>
+    <style>.orbit-map, .project-index { display: none }</style>
     <nav class="static-projects" aria-label="프로젝트 상세">
       {% for p in projects %}<a href="{{ root }}projects/{{ p.slug }}/">{{ p.name }}</a>{% endfor %}
     </nav>

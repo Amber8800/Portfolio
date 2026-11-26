@@ -1,0 +1,197 @@
+.window-shutter, .bridge-lamps, .boot-readout, .boot-indicators, .boot-skip { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .booting {
+    --approval-at: 1000ms;
+    --power-at: 1650ms;
+    --shutter-at: calc(var(--power-at) + 1110ms);
+    --shutter-travel: 1080ms;
+    --projection-at: calc(var(--shutter-at) + var(--shutter-travel));
+    --daylight-at: calc(var(--power-at) + 1560ms);
+  }
+
+  /* The blind travels behind the stationary canopy. Its lower rail reveals the real sky. */
+  .booting .window-shutter {
+    --slat: clamp(40px, 7svh, 86px);
+    display: block; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      linear-gradient(90deg, #020509d9, transparent 22% 78%, #020509d9),
+      linear-gradient(115deg, #37505b23, transparent 49%, #0005),
+      repeating-linear-gradient(0deg, #b2d5e208 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(to bottom, #050a0f 0 3px, #2b3740 3px 4px, #17212a 5px,
+        #111921 calc(var(--slat) - 7px), #0b1219 calc(var(--slat) - 3px), #05090e var(--slat));
+    animation: boot-shutter-up var(--shutter-travel) cubic-bezier(.52,.03,.22,1) var(--shutter-at) both;
+  }
+  .window-shutter::before {
+    content: ""; position: absolute; inset: 0 17%; border-inline: 2px solid #070d13a1;
+    box-shadow: inset 1px 0 #86949a17, 1px 0 #86949a17;
+  }
+  .window-shutter::after {
+    content: ""; position: absolute; inset: auto 0 0; height: 9px;
+    border-block: 1px solid #64747e;
+    background: linear-gradient(#34434d, #141d27 48%, #05090e 65%, #24323c);
+    box-shadow: 0 4px 12px #010307a8;
+  }
+
+  /* The unlit metal stays continuous until light from the open shutter reaches it. */
+  .booting :is(.bridge-frame, .bridge-console)::before {
+    content: ""; position: absolute; inset: 0; background: inherit;
+    filter: brightness(.16) saturate(.5);
+    animation: boot-extinguish 620ms ease-in-out var(--daylight-at) both;
+  }
+  .booting :is(.bridge-frame, .bridge-console)::after {
+    animation: boot-on 620ms ease-in-out var(--daylight-at) both;
+  }
+  .booting .console-scope { animation: boot-on 310ms ease-out calc(var(--power-at) + 160ms) both; }
+  .booting .bridge-lamps {
+    display: block; position: absolute; inset: 0; container-type: size; z-index: 1;
+    animation: boot-extinguish 180ms ease-out var(--projection-at) both;
+  }
+  .bridge-lamp {
+    position: absolute; left: var(--lamp-x); top: var(--lamp-y); translate: -50% -50%;
+    width: var(--lamp-w); height: var(--lamp-h);
+    /* Sample just this fixture and its reflection from the original artwork. */
+    background: radial-gradient(ellipse closest-side, #ffc97965, #f4a54b26 42%, transparent 92%),
+      var(--frame-art) calc(var(--lamp-w) / 2 - var(--lamp-x)) calc(var(--lamp-h) / 2 - var(--lamp-y))
+        / 100cqw 100cqh no-repeat;
+    mask-image: radial-gradient(ellipse closest-side, #000 58%, #000d 70%, transparent);
+    animation: boot-lamp-on 190ms ease-out calc(var(--power-at) + var(--lag)) both;
+  }
+
+  .booting .boot-readout {
+    display: grid; place-items: center;
+    position: fixed; z-index: 5; inset: 0; text-align: center; pointer-events: none;
+    animation: boot-readout-off 560ms ease-out var(--projection-at) both;
+  }
+  .boot-readout > * { grid-area: 1 / 1; }
+  .boot-approval {
+    position: relative; color: #f3c88b;
+    font-size: clamp(1.15rem, 2.1vw, 2.05rem); font-weight: 700; letter-spacing: .13em;
+    text-shadow: 0 1px 4px #02070c;
+    animation: boot-approved calc(var(--power-at) - var(--approval-at)) ease-out var(--approval-at) both;
+  }
+  .boot-approval::before {
+    content: ""; position: absolute; right: calc(100% + .55em); top: 30%;
+    width: .66em; height: .36em; transform: rotate(-45deg);
+    border-bottom: 2px solid; border-left: 2px solid;
+  }
+  .boot-command {
+    display: flex; align-items: center; gap: .5ch; width: 18.5ch; text-align: left;
+    font: 500 clamp(1rem, 1.6vw, 1.55rem)/1.25 Consolas, ui-monospace, monospace;
+    color: #b8d9df; text-shadow: 0 0 8px #72bdd249;
+    animation: boot-extinguish 100ms ease-out calc(var(--approval-at) - 100ms) both;
+  }
+  .boot-command::before { content: ">"; color: #d8ae75; }
+  .boot-command samp {
+    display: block; box-sizing: content-box; overflow: hidden; white-space: nowrap;
+    font: inherit; border-right: 2px solid;
+    animation: boot-type 800ms steps(16, end) 100ms both;
+  }
+  .boot-welcome {
+    font: 700 clamp(2.4rem, 4.65vw, 4.85rem)/1 Barlow, sans-serif;
+    letter-spacing: .1em; text-indent: .1em; color: #e2f2f0;
+    text-shadow: 0 0 20px #8de1ec35, 0 2px 8px #050b12;
+    animation: boot-welcome-on 240ms ease-out var(--power-at) both;
+  }
+
+  .booting .boot-skip {
+    display: inline-flex; align-items: center; gap: .5rem; min-height: 36px;
+    padding: .3rem .65rem; color: #e5d3b6; background: #0c1219e0;
+    border: 1px solid #9e846168; border-radius: 2px; font-size: .8rem;
+  }
+  .boot-skip::after {
+    content: ""; width: .55em; height: .6em; border-right: 1px solid;
+    background: linear-gradient(currentColor, currentColor); clip-path: polygon(0 0, 70% 50%, 0 100%, 0 0, 82% 0, 100% 0, 100% 100%, 82% 100%, 82% 0);
+  }
+  .boot-skip:hover { color: #fff0ce; border-color: #ddbb7c; }
+  .booting .motion-toggle { display: none; }
+
+  /* The ring drawing starts the interface. Skip stays available during every cue. */
+  .booting:not(.boot-briefing) :is(.identity, .header-links, .map-heading, .project-index,
+    .flight-shortcut, .planet-label, .credits) { visibility: hidden; }
+  .boot-briefing :is(.identity, .header-links a, .map-heading, .project-index button,
+    .flight-shortcut, .credits),
+  .boot-briefing .planet-choice[aria-pressed="false"] .planet-label {
+    animation: boot-hud-on 210ms ease-out var(--hud-delay, 0ms) both;
+  }
+  .boot-briefing .header-links a { --hud-delay: 70ms; }
+  .boot-briefing .header-links a + a { --hud-delay: 140ms; }
+  .boot-briefing .map-heading { --hud-delay: 150ms; }
+  .boot-briefing :is(.project-index button, .planet-choice) { --hud-delay: 240ms; }
+  .boot-briefing :is(.project-index button, .planet-choice):nth-of-type(2) { --hud-delay: 330ms; }
+  .boot-briefing :is(.project-index button, .planet-choice):nth-of-type(3) { --hud-delay: 420ms; }
+  .boot-briefing .flight-shortcut { --hud-delay: 510ms; }
+  .boot-briefing .credits { --hud-delay: 570ms; }
+
+  .booting .console-light {
+    animation: boot-on 220ms ease-out var(--projection-at) both;
+  }
+  .booting .system-star {
+    animation: boot-on 230ms ease-out calc(var(--projection-at) + 65ms) both;
+  }
+  .booting .route-field {
+    animation: boot-project 380ms ease-out calc(var(--projection-at) + 100ms) both;
+  }
+  /* The projection reaches the inner orbit first. Each label follows its own planet. */
+  .booting .planet-choice { --world-at: calc(var(--projection-at) + 360ms * var(--radius)); }
+  .booting .planet-choice .planet-system {
+    animation: boot-on 320ms ease-out var(--world-at) both;
+  }
+  /* Keep the server-rendered briefing in place for layout and instant skipping. */
+  .booting:not(.boot-briefing) .brief-overlay { visibility: hidden; }
+  .booting:not(.boot-briefing) .planet-choice[aria-pressed="true"] .selection-ring { visibility: hidden; }
+}
+
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .booting .flight-shortcut { display: inline-flex; }
+}
+@media (max-width: 899px) and (prefers-reduced-motion: no-preference) {
+  .booting:not(.boot-briefing) .planet-choice { visibility: hidden; }
+  .boot-briefing .planet-choice { animation: boot-hud-on 210ms ease-out var(--hud-delay) both; }
+  .booting .boot-indicators {
+    display: flex; gap: 3px; translate: 0 2.1rem;
+  }
+  .boot-indicators i {
+    width: 6px; height: 2px; background: #ecc28a; box-shadow: 0 0 3px #e9b67166;
+    animation: boot-lamp-on 190ms ease-out calc(var(--power-at) + var(--lag)) both;
+  }
+  .booting:not(.boot-briefing) .planet-choice[aria-pressed="true"] .planet-system::after { visibility: hidden; }
+  .boot-briefing .planet-choice[data-hud="drawing"] .planet-system::after {
+    animation: mobile-hud-lock 280ms ease-out both;
+  }
+  .boot-briefing .brief-overlay { position: relative; }
+  .boot-briefing .brief-arrival[aria-busy="true"] .hud-connector { display: contents; }
+  .boot-briefing .hud-leader { display: none; }
+  .boot-briefing .hud-rule {
+    top: 0; left: 0; width: 100%; transform-origin: left;
+    animation: brief-trace 320ms ease-out both;
+  }
+}
+
+@keyframes boot-type { from { width: 0; } to { width: 16ch; } }
+@keyframes boot-approved { from, to { opacity: 0; } 15%, 83% { opacity: 1; } }
+@keyframes boot-hud-on {
+  from { opacity: 0; visibility: hidden; }
+  to { opacity: 1; visibility: visible; }
+}
+@keyframes boot-on { from { opacity: 0; } to { opacity: 1; } }
+@keyframes boot-extinguish { from { opacity: 1; } to { opacity: 0; } }
+@keyframes boot-lamp-on {
+  from { opacity: 0; }
+  48% { opacity: 1; filter: brightness(1.22); }
+  to { opacity: 1; filter: brightness(1); }
+}
+@keyframes boot-welcome-on {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0); }
+}
+@keyframes boot-shutter-up { from { transform: translateY(0); } to { transform: translateY(-103%); } }
+@keyframes mobile-hud-lock {
+  from { opacity: 0; transform: scale(.77); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes boot-project {
+  from { clip-path: inset(100% 0 0); opacity: .1; }
+  to { clip-path: inset(0); opacity: 1; }
+}
+@keyframes boot-readout-off { from { opacity: 1; } 62%, to { opacity: 0; } }

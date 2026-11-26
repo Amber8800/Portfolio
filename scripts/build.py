@@ -4,24 +4,19 @@ import math
 import shutil
 import tempfile
 import tomllib
+from hashlib import sha256
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 
 ROOT = Path(__file__).resolve().parents[1]
-# The two screen-space axes of the inclined course, in percentages of the map.
-# SVG draws a transformed unit circle. HTML uses that same matrix for its centres.
-ORBIT = {"cx": 53.5, "cy": 36.0, "rx": 36.8, "ry": 19.8, "tilt_y": 5.5}
-
-
-def orbit_point(angle: float) -> tuple[float, float]:
-    theta = math.radians(angle)
-    # Preserve the foreshortening of the previous camera: a 120-degree world
-    # turn covers a different apparent angle on the near and far arcs.
-    phase = math.atan2(math.sqrt(2.4) * math.sin(theta), 1.7 * math.cos(theta) - 0.7)
-    u, v = math.sin(phase), math.cos(phase)
-    return ORBIT["cx"] + ORBIT["rx"] * u, ORBIT["cy"] + ORBIT["tilt_y"] * u + ORBIT["ry"] * v
+# Screen coordinates are percentages of the hologram. The orbits share a tilted plane.
+ORBIT = {
+    "cx": 55, "cy": 52,
+    "rx": 98, "tilt_y": 47, "front_x": 21, "ry": 60,
+    "depth_per_radius": 1.4,
+}
 
 
 def read_toml(path: Path) -> dict:
@@ -38,6 +33,9 @@ def load_projects() -> list[dict]:
                       "problem", "decision", "result", "stack", "links"):
             if not project.get(field):
                 raise ValueError(f"{source.name}: missing {field}")
+        orbit = project["orbit"]
+        if not all(math.isfinite(orbit[k]) and orbit[k] > 0 for k in ("radius", "focus_zoom")):
+            raise ValueError(f"{source.name}: orbital radius and zoom must be positive")
         media = project.get("media", {})
         for key in ("image", "logo"):
             asset = media.get(key)
@@ -45,18 +43,43 @@ def load_projects() -> list[dict]:
                 raise ValueError(f"{source.name}: missing {key} asset {asset}")
         if media.get("image") and not all(media.get(k) for k in ("alt", "caption", "source", "width", "height")):
             raise ValueError(f"{source.name}: the service image needs dimensions, a caption, alt text and a source")
-        projects.append({**project, "slug": slug, "media": media})
+        # The camera looks down the chosen radius. The gap to the planet
+        # sets its apparent diameter when it reaches the front of the orbit.
+        camera_distance = ORBIT["depth_per_radius"] * orbit["radius"] + 1 / orbit["focus_zoom"]
+        projects.append({**project, "slug": slug, "media": media, "camera_distance": camera_distance})
     projects.sort(key=lambda project: project["order"])
     if [p["slug"] for p in projects] != ["vishue", "changup-on", "duip"]:
         raise ValueError("Expected the three project records in map order")
+    distance = projects[0]["camera_distance"]
+    target = projects[0]["orbit"]["radius"]
+    depth = ORBIT["depth_per_radius"]
+    if min(p["camera_distance"] for p in projects) <= depth * max(p["orbit"]["radius"] for p in projects):
+        raise ValueError("Every camera position must leave the nearest orbit in front of the lens")
     for index, project in enumerate(projects):
-        angle = index * 360 / len(projects)
-        depth = math.cos(math.radians(angle))
-        project["angle"] = angle
-        project["scale"] = round(1 / (2.4 - 1.4 * depth), 5)
-        x, y = orbit_point(angle)
-        project["x"], project["y"] = round(x, 4), round(y, 4)
+        radius = project["orbit"]["radius"]
+        project["angle"] = index * 360 / len(projects)
+        theta = math.radians(project["angle"])
+        u, v = radius * math.sin(theta), radius * math.cos(theta)
+        gap = distance - depth * v
+        project["scale"] = round(1 / gap, 6)
+        project["x"] = round(ORBIT["cx"] + (ORBIT["rx"] * u + ORBIT["front_x"] * (v - target)) / gap, 5)
+        project["y"] = round(ORBIT["cy"] + (ORBIT["tilt_y"] * u + ORBIT["ry"] * (v - target)) / gap, 5)
+        # First paint uses the same perspective ellipse as the live camera.
+        near_gap, far_gap = distance - depth * radius, distance + depth * radius
+        near, far = (radius - target) / near_gap, (-radius - target) / far_gap
+        project["ellipse"] = (radius / math.sqrt(near_gap * far_gap), (near - far) / 2, (near + far) / 2)
     return projects
+
+
+def versioned_assets(directory: Path, projects: list[dict]) -> dict[str, str]:
+    paths = [*directory.glob("css/*.css"), *directory.glob("js/*.js")]
+    paths.extend(directory / "bridge" / f"{project['slug']}.webp" for project in projects)
+    urls = {}
+    for path in paths:
+        name = path.relative_to(directory).as_posix()
+        version = sha256(path.read_bytes()).hexdigest()[:12]
+        urls[name] = f"assets/{name}?v={version}"
+    return urls
 
 
 def build() -> None:
@@ -75,6 +98,7 @@ def build() -> None:
     with tempfile.TemporaryDirectory(prefix=".portfolio-build-", dir=ROOT) as scratch:
         stage = Path(scratch) / "site"
         shutil.copytree(ROOT / "assets", stage / "assets")
+        env.globals["assets"] = versioned_assets(stage / "assets", projects)
         (stage / "index.html").write_text(
             env.get_template("index.html").render(root="./"), encoding="utf-8"
         )

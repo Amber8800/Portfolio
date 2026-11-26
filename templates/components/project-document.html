@@ -1,0 +1,36 @@
+{% from "components/briefing.html" import project_title, service_figure, comparison %}
+{% from "components/planet-system.html" import planet_system %}
+{% macro project_document(p, root, in_dialog=false) -%}
+  {% set section_heading = 'h3' if in_dialog else 'h2' %}
+  <header class="case-heading">
+    {% if in_dialog %}<p class="case-stage">{{ p.stage }}</p>{% endif %}
+    {{ project_title(p, root, 'h2' if in_dialog else 'h1', 'document-title' if in_dialog else none) }}
+    <p class="case-summary">{{ p.summary }}</p>
+    <dl class="brief-role"><dt>담당</dt><dd>{{ p.role }}</dd></dl>
+    {% if in_dialog %}
+    <div class="document-projection" aria-hidden="true">{{ planet_system(p, root, on_map=false) }}</div>
+    {% endif %}
+  </header>
+  <div class="case-grid">
+    <div class="case-text">
+      <section><{{ section_heading }}>해결할 문제</{{ section_heading }}><p>{{ p.problem }}</p></section>
+      <section><{{ section_heading }}>내가 맡은 일</{{ section_heading }}><p>{{ p.contribution }}</p>
+        {% if p.get('paired') %}
+        <dl class="phase-list">{% for link in p.links %}
+          <div><dt><a href="{{ link.url }}">{{ link.label }}</a></dt><dd>{{ link.work }}</dd></div>
+        {% endfor %}</dl>
+        {% endif %}
+      </section>
+      <section><{{ section_heading }}>구현 결정</{{ section_heading }}><p>{{ p.decision }}</p></section>
+      <section><{{ section_heading }}>확인한 결과</{{ section_heading }}><p>{{ p.result }}</p></section>
+    </div>
+    <aside class="case-evidence" aria-label="서비스 화면과 관련 자료">
+      {{ service_figure(p, root, true) }}
+      {% if p.get('metric') %}{{ comparison(p.metric) }}{% endif %}
+      <{{ section_heading }}>사용 기술</{{ section_heading }}>
+      <ul class="stack-list">{% for tech in p.stack %}<li>{{ tech }}</li>{% endfor %}</ul>
+      <{{ section_heading }}>관련 자료</{{ section_heading }}>
+      <ul class="reference-links">{% for link in p.links %}<li><a href="{{ link.url }}">{{ link.label }}</a></li>{% endfor %}</ul>
+    </aside>
+  </div>
+{%- endmacro %}

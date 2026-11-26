@@ -8,18 +8,19 @@
   <meta name="description" content="{% block description %}황호순의 ML·AI 엔지니어 포트폴리오. VISHUE, 창업ON, 두잎에서 맡은 역할과 구현 결과를 살펴보세요.{% endblock %}">
   <title>{% block title %}황호순 · ML / AI Engineer{% endblock %}</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="{{ root }}assets/css/site.css">
-  <script defer src="{{ root }}assets/js/resume.js"></script>
+  <link rel="stylesheet" href="{{ root }}{{ assets['css/site.css'] }}">
+  <script defer src="{{ root }}{{ assets['js/resume.js'] }}"></script>
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <a class="skip-link" href="#main">본문으로 이동</a>
-  <div class="site-shell">
+  <div class="site-shell"{% block shell_attributes %}{% endblock %}>
     {% block environment %}{% endblock %}
     {% include "components/header.html" %}
     {% block content %}{% endblock %}
     {% include "components/credits.html" %}
   </div>
   {% include "components/resume.html" %}
+  {% block dialogs %}{% endblock %}
 </body>
 </html>

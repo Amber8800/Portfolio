@@ -1,30 +1,96 @@
 {% extends "base.html" %}
 {% from "components/briefing.html" import briefing %}
+{% from "components/project-document.html" import project_document %}
+{# Centre and footprint on frame.webp (percent), then ignition delay in milliseconds. #}
+{% set console_lamps = [
+  (32.85, 94.97, 3.3, 2.3, 0), (67.12, 94.97, 3.3, 2.3, 150),
+  (85.71, 89.50, 2.2, 1.5, 310), (87.27, 89.45, 2.2, 1.5, 450),
+  (14.36, 89.40, 2.2, 1.5, 610), (12.79, 89.50, 2.2, 1.5, 750),
+  (95.80, 90.77, 10, 4.6, 935), (4.20, 90.77, 10, 4.6, 1110)
+] %}
+{% set overhead_lamps = [(49.64, 4.79, 2.6, 1.8, 1290), (52.21, 4.79, 4.8, 2.3, 1450)] %}
+{% macro lamps(fixtures) -%}
+  <div class="bridge-lamps">
+    {% for x, y, w, h, delay in fixtures %}
+    <span class="bridge-lamp" style="--lamp-x:{{ x }}cqw;--lamp-y:{{ y }}cqh;--lamp-w:{{ w }}cqw;--lamp-h:{{ h }}cqh;--lag:{{ delay }}ms"></span>
+    {% endfor %}
+  </div>
+{%- endmacro %}
 {% block body_class %}bridge-home{% endblock %}
+{% block shell_attributes %} data-camera
+       style="--cx:{{ orbit.cx }};--cy:{{ orbit.cy }};--rx:{{ orbit.rx }};--ry:{{ orbit.ry }};
+              --front-x:{{ orbit.front_x }};--tilt-y:{{ orbit.tilt_y }};--depth-per-radius:{{ orbit.depth_per_radius }};
+              --home-distance:{{ projects[0].camera_distance }};--home-radius:{{ projects[0].orbit.radius }}"{% endblock %}
 {% block head %}
-  <link rel="stylesheet" href="{{ root }}assets/css/bridge.css">
+  <link rel="stylesheet" href="{{ root }}{{ assets['css/bridge.css'] }}">
+  <link rel="stylesheet" href="{{ root }}{{ assets['css/boot.css'] }}">
   <link rel="preload" as="image" href="{{ root }}assets/bridge/deep-space.webp">
   <link rel="preload" as="image" href="{{ root }}assets/bridge/frame.webp">
-  <script defer src="{{ root }}assets/js/bridge.js"></script>
-  <script defer src="{{ root }}assets/js/scene-motion.js"></script>
+  <script src="{{ root }}{{ assets['js/boot.js'] }}"></script>
+  <script defer src="{{ root }}{{ assets['js/bridge.js'] }}"></script>
+  <script defer src="{{ root }}{{ assets['js/project-document.js'] }}"></script>
+  <script defer src="{{ root }}{{ assets['js/scene-motion.js'] }}"></script>
 {% endblock %}
 {% block environment %}
-  <div class="space-window" aria-hidden="true"><div class="starlight"></div></div>
-  <div class="bridge-frame" aria-hidden="true"></div>
+  <div class="space-window" aria-hidden="true">
+    <div class="starlight"></div>
+    <div class="window-shutter"></div>
+  </div>
+  <div class="bridge-frame" aria-hidden="true">{{ lamps(overhead_lamps) }}</div>
+  <div class="bridge-console" aria-hidden="true">
+    <span class="console-scope"></span>
+    {{ lamps(console_lamps) }}
+  </div>
   <div class="console-light" aria-hidden="true"></div>
 {% endblock %}
 {% block content %}
   <main id="main" class="flight-deck" tabindex="-1">
     <div class="map-toolbar">
+      <div class="project-index" role="group" aria-label="프로젝트 바로 선택">
+        {% for p in projects %}
+        <button type="submit" form="project-orbits" formaction="{{ root }}projects/{{ p.slug }}/"
+                data-destination="{{ p.slug }}" aria-controls="project-briefing"
+                aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ p.name }}</button>
+        {% endfor %}
+      </div>
       <h1 id="selector-title" class="map-heading">프로젝트 선택</h1>
-      <button type="button" class="motion-toggle" hidden>모션 멈춤</button>
-    </div>
-    <div class="star-chart" style="--cx:{{ orbit.cx }};--cy:{{ orbit.cy }};--rx:{{ orbit.rx }};--ry:{{ orbit.ry }};--tilt-y:{{ orbit.tilt_y }}">
-      {% include "components/selector.html" %}
-      <div class="brief-overlay">
-        {% for p in projects %}{{ briefing(p, root, loop.first) }}{% endfor %}
+      <div class="map-actions">
+        <a class="flight-shortcut" href="{{ root }}projects/{{ projects[0].slug }}/" data-document="{{ projects[0].slug }}" aria-haspopup="dialog">{{ projects[0].name }} 상세 바로가기</a>
+        <button type="button" class="boot-skip">연출 건너뛰기</button>
+        <button type="button" class="motion-toggle" hidden>모션 멈춤</button>
       </div>
     </div>
+    <div class="star-chart">
+      {% include "components/selector.html" %}
+      <div id="project-briefing" class="brief-overlay">
+        {{ briefing(projects[0], root, priority=true) }}
+      </div>
+    </div>
+    {% for p in projects %}
+    <template id="brief-template-{{ p.slug }}">{{ briefing(p, root) }}</template>
+    {% endfor %}
     <span class="sr-only" role="status" id="selection-status"></span>
   </main>
+{% endblock %}
+{% block dialogs %}
+  <div class="boot-readout" aria-hidden="true">
+    <span class="boot-command"><samp lang="en">bridge.connect()</samp></span>
+    <span class="boot-approval">접속 승인</span>
+    <strong class="boot-welcome" lang="en">WELCOME</strong>
+    <span class="boot-indicators">
+      {% for fixture in console_lamps + overhead_lamps %}
+      <i style="--lag:{{ fixture[-1] }}ms"></i>
+      {% endfor %}
+    </span>
+  </div>
+  <dialog class="document-dialog" id="project-document" aria-labelledby="document-label document-title">
+    <div class="document-toolbar">
+      <span id="document-label">프로젝트 브리핑</span>
+      <button type="button" class="document-close" aria-label="브리핑 문서 닫기">닫기</button>
+    </div>
+    <article class="document-body" tabindex="0" aria-labelledby="document-title" autofocus></article>
+  </dialog>
+  {% for p in projects %}
+  <template id="document-template-{{ p.slug }}">{{ project_document(p, root, in_dialog=true) }}</template>
+  {% endfor %}
 {% endblock %}

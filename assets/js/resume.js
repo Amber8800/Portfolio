@@ -6,7 +6,6 @@ if (typeof resume.showModal === "function") {
   resumeOpener.addEventListener("click", (event) => {
     event.preventDefault();
     resume.showModal();
-    document.documentElement.classList.add("modal-open");
     closeResume.focus({ preventScroll: true });
   });
   closeResume.addEventListener("click", (event) => {
@@ -21,7 +20,6 @@ if (typeof resume.showModal === "function") {
         event.clientY < box.top || event.clientY > box.bottom) resume.close();
   });
   resume.addEventListener("close", () => {
-    document.documentElement.classList.remove("modal-open");
     resumeOpener.focus({ preventScroll: true });
   });
 }

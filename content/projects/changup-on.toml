@@ -1,4 +1,5 @@
 order = 2
+orbit = { radius = 0.98, focus_zoom = 1.04 }
 name = "창업ON"
 stage = "3·4차 프로젝트"
 paired = true

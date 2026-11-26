@@ -1,38 +1,12 @@
 {% extends "base.html" %}
-{% from "components/briefing.html" import project_title, service_figure, comparison %}
+{% from "components/project-document.html" import project_document %}
 {% block title %}{{ project.name }} · {{ profile.name }} 포트폴리오{% endblock %}
 {% block description %}{{ project.summary }}. {{ project.contribution }}{% endblock %}
 {% block body_class %}project-page{% endblock %}
 {% block content %}
   <main id="main" class="project-document" tabindex="-1">
     <nav class="breadcrumb" aria-label="현재 위치"><a href="{{ root }}?project={{ project.slug }}">프로젝트 선택</a><span aria-hidden="true">/</span><span>{{ project.name }}</span></nav>
-    <header class="case-heading">
-      {{ project_title(project, root, 'h1') }}
-      <p class="case-summary">{{ project.summary }}</p>
-      <dl class="brief-role"><dt>담당</dt><dd>{{ project.role }}</dd></dl>
-    </header>
-    <div class="case-grid">
-      <div class="case-text">
-        <section><h2>해결할 문제</h2><p>{{ project.problem }}</p></section>
-        <section><h2>내가 맡은 일</h2><p>{{ project.contribution }}</p>
-          {% if project.get('paired') %}
-          <dl class="phase-list">{% for link in project.links %}
-            <div><dt><a href="{{ link.url }}">{{ link.label }}</a></dt><dd>{{ link.work }}</dd></div>
-          {% endfor %}</dl>
-          {% endif %}
-        </section>
-        <section><h2>구현 결정</h2><p>{{ project.decision }}</p></section>
-        <section><h2>확인한 결과</h2><p>{{ project.result }}</p></section>
-      </div>
-      <aside class="case-evidence" aria-label="서비스 화면과 관련 자료">
-        {{ service_figure(project, root, true) }}
-        {% if project.get('metric') %}{{ comparison(project.metric) }}{% endif %}
-        <h2>사용 기술</h2>
-        <ul class="stack-list">{% for tech in project.stack %}<li>{{ tech }}</li>{% endfor %}</ul>
-        <h2>관련 자료</h2>
-        <ul class="reference-links">{% for link in project.links %}<li><a href="{{ link.url }}">{{ link.label }}</a></li>{% endfor %}</ul>
-      </aside>
-    </div>
+    {{ project_document(project, root) }}
     <nav class="other-projects" aria-label="다른 프로젝트"><span>다른 프로젝트</span>
       {% for p in projects if p.slug != project.slug %}<a href="{{ root }}projects/{{ p.slug }}/">{{ p.name }}</a>{% endfor %}
     </nav>
