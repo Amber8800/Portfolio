@@ -14,7 +14,7 @@
       <ul class="experience-list">
         {% for p in projects %}
         <li>
-          <a href="{{ root }}projects/{{ p.slug }}/">
+          <a href="{{ root }}projects/{{ p.slug }}/"{% if project is not defined %} data-document="{{ p.slug }}" aria-haspopup="dialog"{% endif %}>
             <strong>{{ p.name }}</strong>
             <span>{{ p.role }}</span>
           </a>
