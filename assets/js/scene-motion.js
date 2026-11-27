@@ -1,13 +1,13 @@
 (() => {
   const map = document.querySelector("[data-orbit]");
   const toggle = document.querySelector(".motion-toggle");
-  const resume = document.getElementById("resume");
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const preference = "bridge-motion-paused";
   const textures = new Map();
   const projections = new Map();
   const surfaces = [];
   let paused = false;
+  let dialogOpen = false;
   let frame = 0;
   let lastPaint = null;
   let elapsed = 0;
@@ -55,7 +55,7 @@
     return samples;
   }
 
-  function paint(surface, turn) {
+  function paint(surface, bearing) {
     const { canvas, context, texture, size } = surface;
     if (canvas.width !== size) {
       canvas.width = canvas.height = size;
@@ -64,7 +64,7 @@
       surface.samples = sphereProjection(size, texture);
       surface.shift = -1;
     }
-    const longitude = surface.start + elapsed / surface.period + turn / 1200;
+    const longitude = surface.start + elapsed / surface.period - bearing / 1200;
     const shift = Math.floor(((longitude % 1 + 1) % 1) * texture.width);
     if (shift === surface.shift) return;
     surface.shift = shift;
@@ -75,11 +75,11 @@
   }
 
   function moving() {
-    return !paused && !reduced.matches && !document.hidden && !resume.open;
+    return !paused && !reduced.matches && !document.hidden && !dialogOpen;
   }
 
   function requestPaint() {
-    if (!frame && surfaces.length && !document.hidden && !resume.open) frame = requestAnimationFrame(draw);
+    if (!frame && surfaces.length && !document.hidden && !dialogOpen) frame = requestAnimationFrame(draw);
   }
 
   function draw(now) {
@@ -87,19 +87,19 @@
     if (lastPaint === null || now - lastPaint >= 1000 / 30 - 1) {
       if (lastPaint !== null && moving()) elapsed += Math.min(now - lastPaint, 150) / 1000;
       lastPaint = now;
-      const turn = Number(getComputedStyle(map).getPropertyValue("--orbit-turn")) || 0;
-      for (const surface of surfaces) paint(surface, turn);
+      const bearing = Number(getComputedStyle(map).getPropertyValue("--camera-bearing")) || 0;
+      for (const surface of surfaces) paint(surface, bearing);
     }
     if (moving()) requestPaint();
   }
 
   function syncMotion() {
+    dialogOpen = !!document.querySelector("dialog[open]");
     cancelAnimationFrame(frame);
     frame = 0;
     lastPaint = null;
     document.body.classList.toggle("scene-playing", moving());
     document.body.classList.toggle("motion-paused", paused);
-    if (paused || reduced.matches) document.body.classList.remove("booting");
     toggle.textContent = paused ? "모션 재생" : "모션 멈춤";
     toggle.hidden = reduced.matches;
     requestPaint();
@@ -112,11 +112,14 @@
   });
   reduced.addEventListener("change", syncMotion);
   document.addEventListener("visibilitychange", syncMotion);
-  new MutationObserver(syncMotion).observe(resume, { attributes: true, attributeFilter: ["open"] });
+  const dialogObserver = new MutationObserver(syncMotion);
+  document.querySelectorAll("dialog").forEach(dialog => {
+    dialogObserver.observe(dialog, { attributes: true, attributeFilter: ["open"] });
+  });
   syncMotion();
 
   const resolutions = [40, 80, 128, 192, 256, 320, 384];
-  document.querySelectorAll(".world").forEach(async (world, index) => {
+  map.querySelectorAll(".world").forEach(async (world, index) => {
     const canvas = world.querySelector("canvas");
     const context = canvas.getContext("2d");
     if (!context) return;

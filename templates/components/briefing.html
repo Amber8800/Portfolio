@@ -1,16 +1,17 @@
-{% macro project_title(p, root, tag='h2') -%}
+{% macro project_title(p, root, tag='h2', heading_id=none) -%}
 <div class="project-title">
   {% if p.media.get('logo') %}
   <img class="project-mark" src="{{ root }}assets/projects/{{ p.slug }}/{{ p.media.logo }}" alt="" width="36" height="36">
   {% endif %}
-  <{{ tag }} id="title-{{ p.slug }}">{{ p.name }}</{{ tag }}>
+  <{{ tag }} id="{{ heading_id or 'title-' ~ p.slug }}">{{ p.name }}</{{ tag }}>
 </div>
 {%- endmacro %}
 
 {% macro service_figure(p, root, full=false, priority=false) -%}
 {% if p.media.get('image') %}
 <figure class="service-figure"{% if full %} id="service-screen"{% endif %}>
-  <a href="{% if full %}{{ root }}assets/projects/{{ p.slug }}/{{ p.media.image }}{% else %}{{ root }}projects/{{ p.slug }}/#service-screen{% endif %}" aria-label="{{ p.name }} 서비스 화면 크게 보기">
+  <a href="{% if full %}{{ root }}assets/projects/{{ p.slug }}/{{ p.media.image }}{% else %}{{ root }}projects/{{ p.slug }}/#service-screen{% endif %}" aria-label="{{ p.name }} 서비스 화면 크게 보기"
+     {% if not full %}data-document="{{ p.slug }}" aria-haspopup="dialog"{% endif %}>
   <img src="{{ root }}assets/projects/{{ p.slug }}/{{ p.media.image }}" alt="{{ p.media.alt }}"
        width="{{ p.media.width }}" height="{{ p.media.height }}"{% if priority %} fetchpriority="high"{% else %} decoding="async"{% endif %}>
   </a>
@@ -31,23 +32,29 @@
 </section>
 {%- endmacro %}
 
-{% macro briefing(p, root, active) -%}
-<article class="briefing" id="brief-{{ p.slug }}" aria-labelledby="title-{{ p.slug }}"{% if not active %} hidden inert{% endif %}>
+{% macro briefing(p, root, priority=false) -%}
+<span class="hud-connector" aria-hidden="true" style="--focus-zoom:{{ p.orbit.focus_zoom }}">
+  <span class="hud-leader"><span class="hud-stroke"></span></span>
+  <span class="hud-rule"></span>
+</span>
+<article class="briefing" id="brief-{{ p.slug }}" aria-labelledby="title-{{ p.slug }}">
   {{ project_title(p, root) }}
-  <p class="brief-summary">{{ p.summary }}</p>
-  <dl class="brief-role"><dt>담당</dt><dd>{{ p.role }}</dd></dl>
-  <div class="brief-evidence">
-    {{ service_figure(p, root, priority=active) }}
-    {% if p.get('metric') %}
-    <div class="brief-metric">
-      <p>{{ p.metric.get('brief_measure', p.metric.measure) }}</p>
-      <p class="brief-values"><span>{{ p.metric.before }}</span><span aria-hidden="true"> → </span><strong>{{ p.metric.after }}</strong></p>
-      <small>{{ p.metric.get('brief_conditions', p.metric.before_label ~ ' → ' ~ p.metric.after_label) }}</small>
+  <div class="brief-copy">
+    <p class="brief-summary">{{ p.summary }}</p>
+    <dl class="brief-role"><dt>담당</dt><dd>{{ p.role }}</dd></dl>
+    <div class="brief-evidence">
+      {{ service_figure(p, root, priority=priority) }}
+      {% if p.get('metric') %}
+      <div class="brief-metric">
+        <p>{{ p.metric.get('brief_measure', p.metric.measure) }}</p>
+        <p class="brief-values"><span>{{ p.metric.before }}</span><span aria-hidden="true"> → </span><strong>{{ p.metric.after }}</strong></p>
+        <small>{{ p.metric.get('brief_conditions', p.metric.before_label ~ ' → ' ~ p.metric.after_label) }}</small>
+      </div>
+      {% else %}
+      <p class="brief-highlight">{{ p.get('brief_contribution', p.contribution) }}</p>
+      {% endif %}
     </div>
-    {% else %}
-    <p class="brief-highlight">{{ p.get('brief_contribution', p.contribution) }}</p>
-    {% endif %}
   </div>
-  <a class="detail-link" href="{{ root }}projects/{{ p.slug }}/">프로젝트 상세 보기</a>
+  <a class="detail-link" href="{{ root }}projects/{{ p.slug }}/" data-document="{{ p.slug }}" aria-haspopup="dialog">프로젝트 상세 보기</a>
 </article>
 {%- endmacro %}

@@ -1,7 +1,13 @@
-{% macro ring_half(side) -%}
+{% macro ring_half(side, slug) -%}
 {% set track = 'M 7,50 A 113,27 0 0 1 233,50' %}
+{% set mask_id = 'hud-draw-' ~ slug ~ '-' ~ side %}
 <svg class="selection-ring ring-{{ side }}" viewBox="0 0 240 100" aria-hidden="true" focusable="false" fill="none">
-  <g{% if side == 'front' %} transform="rotate(180 120 50)"{% endif %}>
+  <defs>
+    <mask id="{{ mask_id }}" maskUnits="userSpaceOnUse" x="0" y="0" width="240" height="100">
+      <path class="ring-reveal" d="{{ track }}" pathLength="180" stroke="white" stroke-width="26"/>
+    </mask>
+  </defs>
+  <g class="ring-ink" style="--entry-mask: url(#{{ mask_id }})"{% if side == 'front' %} transform="rotate(180 120 50)"{% endif %}>
     <path class="ring-track" pathLength="180" d="{{ track }}"/>
     <path class="ring-rail" pathLength="180" d="M 16,50 A 104,23 0 0 1 224,50"/>
     <path class="ring-ticks" pathLength="180" d="M 4,50 A 116,30 0 0 1 236,50"/>

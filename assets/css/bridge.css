@@ -1,23 +1,28 @@
-@property --orbit-turn {
+@property --camera-bearing {
   syntax: "<number>";
   inherits: true;
   initial-value: 0;
 }
+@property --flight-progress { syntax: "<number>"; inherits: false; initial-value: 1; }
+@property --camera-distance { syntax: "<number>"; inherits: true; initial-value: 3; }
+@property --camera-target { syntax: "<number>"; inherits: true; initial-value: 1; }
 
-.space-window, .bridge-frame, .console-light { position: absolute; pointer-events: none; }
+.space-window, .bridge-frame, .bridge-console, .console-light { position: absolute; pointer-events: none; }
 .space-window {
-  inset: 0; z-index: -3; overflow: hidden;
-  background: #0b1020 url("../bridge/deep-space.webp") center 72% / cover no-repeat;
+  inset: 0; z-index: -3; overflow: hidden; container-type: size; background: #05090f;
 }
-/* Only the upper sky drifts. The horizon, window and console stay registered. */
+/* Use only the stellar portion of the scenic artwork behind the physical canopy. */
 .space-window::before {
-  content: ""; position: absolute; inset: 0; background: inherit;
-  mask-image: linear-gradient(#000 42%, transparent 77%);
+  content: "";
+  position: absolute; left: 50%; top: 72%; translate: -50% -72%;
+  width: max(110cqw, 165cqh); aspect-ratio: 3 / 2;
+  background: url("../bridge/deep-space.webp") center / 100% 100% no-repeat;
+  mask-image: linear-gradient(#000 54%, transparent 67%);
   animation: nebula-drift 26s ease-in-out infinite alternate;
 }
 @keyframes nebula-drift {
-  from { transform: scale(1.045) translate(-.9%, -.3%); }
-  to { transform: scale(1.045) translate(1.15%, .5%); }
+  from { transform: translate(-.55%, -.2%); }
+  to { transform: translate(.65%, .28%); }
 }
 .starlight { position: absolute; inset: 0; overflow: hidden; mask-image: linear-gradient(#000 65%, transparent 89%); }
 .starlight::before, .starlight::after {
@@ -28,19 +33,88 @@
 .starlight::after { opacity: .76; background-size: 311px 228px; background-position: 57px 69px; animation: near-stars 78s linear infinite; }
 @keyframes far-stars { to { transform: translate3d(-244px, 0, 0); } }
 @keyframes near-stars { to { transform: translate3d(-311px, 0, 0); } }
-.bridge-frame { inset: 0; z-index: -2; background: url("../bridge/frame.webp") center / 100% 100% no-repeat; }
+.bridge-home { --ring-span: 1.78; --ring-tilt: 28deg; }
+.bridge-home .site-shell {
+  --console-zoom: 1.48; --console-slice: 27%;
+  overflow: clip;
+}
+.bridge-frame, .bridge-console {
+  --frame-art: url("../bridge/frame.webp");
+  inset: 0; background: var(--frame-art) center / 100% 100% no-repeat;
+}
+.bridge-frame {
+  z-index: -2; clip-path: inset(0 0 calc(var(--console-slice) * var(--console-zoom)) 0);
+}
+.bridge-console {
+  /* The straight side rails meet the taller foreground console at the same cut. */
+  z-index: 2; clip-path: inset(calc(100% - var(--console-slice)) 0 0);
+  transform: scaleY(var(--console-zoom)); transform-origin: center bottom;
+}
+.console-scope {
+  /* Bearing repeater on the engraved scope in the physical console. */
+  position: absolute; left: 39.1%; top: 88.4%; width: 21.8%; height: 6%; container-type: size;
+  --azimuth: calc(var(--camera-bearing) * 1deg);
+  --pip-x: calc(50% + 32% * sin(var(--azimuth))); --pip-y: calc(50% - 31% * cos(var(--azimuth)));
+  background: radial-gradient(ellipse 2.5px 1.5px at var(--pip-x) var(--pip-y), #ffdfa4 40%, transparent),
+    radial-gradient(ellipse 8px 3px at var(--pip-x) var(--pip-y), #eab56d73, transparent),
+    radial-gradient(ellipse closest-side, transparent 59%, #8cbac532 62%, transparent 65%),
+    radial-gradient(ellipse closest-side, #63919e31, #497a8c19 70%, transparent);
+}
+.console-scope::before {
+  --dx: calc(32cqw * sin(var(--azimuth))); --dy: calc(-31cqh * cos(var(--azimuth)));
+  content: ""; position: absolute; left: 50%; top: calc(50% - .5px); width: hypot(var(--dx), var(--dy)); height: 1px;
+  transform-origin: left center; transform: rotate(atan2(var(--dy), var(--dx)));
+  background: linear-gradient(90deg, #a1cacc61, #dec191ad);
+}
+.bridge-frame::after, .bridge-console::after {
+  content: ""; position: absolute; inset: 0; mix-blend-mode: screen;
+  /* Lamp centres are registered to the transparent 1536 × 1024 frame. */
+  background:
+    radial-gradient(ellipse 4.7% 1.65% at 51.1% 4.8%, #ffc77788, #e992342e 45%, transparent),
+    radial-gradient(ellipse 4.2% 1.8% at 4.2% 90.9%, #ffb76188, transparent),
+    radial-gradient(ellipse 2.6% 1.05% at 13.6% 89.5%, #ffbb6469, transparent),
+    radial-gradient(ellipse 1.35% 1% at 32.9% 95.1%, #ffb45366, transparent),
+    radial-gradient(ellipse 1.35% 1% at 67.1% 95.1%, #ffb45366, transparent),
+    radial-gradient(ellipse 2.6% 1.05% at 86.5% 89.5%, #ffbb6469, transparent),
+    radial-gradient(ellipse 4.2% 1.8% at 95.8% 90.9%, #ffb76188, transparent);
+}
+.bridge-home .site-header, .bridge-home .site-footer { z-index: 4; }
+@media (min-width: 900px) {
+  /* The header bays share the overhead lamp's centre on the stretched frame. */
+  .bridge-home .site-header { position: static; }
+  .bridge-home .site-header > * { position: absolute; top: 4.8%; translate: 0 -50%; }
+  .bridge-home .identity { left: 5.9%; }
+  .bridge-home .header-links { right: 5.9%; }
+}
 .console-light {
-  bottom: 9.15%; left: 47%; width: 6%; height: 1px;
-  background: linear-gradient(90deg, transparent, #c08d49aa, transparent);
+  z-index: 3; left: 50%; bottom: calc(8.6% * var(--console-zoom)); width: clamp(25px, 3.6vw, 64px); height: 4px;
+  transform: translate(-50%, 50%); border-radius: 50%;
+  background: radial-gradient(ellipse, #d0f8ff 2%, #90ddea9c 28%, transparent 72%);
+  box-shadow: 0 0 6px #a1edfb90, 0 -3px 15px 2px #64bddd69;
+}
+.console-light::before {
+  content: ""; position: absolute; left: 50%; bottom: 50%; translate: -50% 0;
+  width: min(68vw, 1100px); height: clamp(185px, 47svh, 640px);
+  background: conic-gradient(from -38deg at 50% 100%, transparent, #56c1df10 8deg,
+    #78d0e836 24deg, #a0e6ee5c 38deg, #74c7e23b 48deg, #55b7d911 67deg, transparent 76deg);
+  mask-image: linear-gradient(to top, #000, #000a 27%, #0004 57%, transparent 96%);
+}
+@media (min-width: 900px) {
+  .bridge-home:has(.document-dialog[open]) .console-light::before {
+    height: clamp(150px, 33svh, 400px);
+    background: conic-gradient(from -63deg at 50% 100%, transparent, #90d7ec38 7deg, #73bddd18 16deg,
+      #b9edfa60 63deg, #73bddd18 110deg, #90d7ec38 119deg, transparent 126deg);
+    mask-image: linear-gradient(to top, #000, #000a 45%, transparent);
+  }
 }
 
-.bridge-home .site-footer { min-height: clamp(56px, 14svh, 155px); }
+.bridge-home .site-footer { min-height: clamp(88px, 21svh, 280px); }
 .flight-deck {
-  flex: 1; min-width: 0; display: flex; flex-direction: column;
+  position: relative; z-index: 0; flex: 1; min-width: 0; display: flex; flex-direction: column;
   padding: clamp(15px, 2.8svh, 38px) 5.1% clamp(10px, 2.4svh, 32px);
 }
 .map-toolbar {
-  position: relative; display: grid; align-items: center; justify-items: center;
+  position: relative; z-index: 2; display: grid; align-items: center; justify-items: center;
   min-height: 42px; margin: 0 1.5%;
 }
 .map-heading {
@@ -52,8 +126,25 @@
   background: linear-gradient(90deg, transparent, #c1b098ab);
 }
 .map-heading::after { transform: scaleX(-1); }
+.project-index { position: absolute; left: 0; z-index: 1; display: flex; align-items: center; gap: .3rem; }
+.project-index button {
+  display: inline-flex; align-items: center; gap: .36rem; min-height: 36px; padding: .25rem .39rem;
+  background: none; border: 0; color: #bdcad6; font-size: .85rem; white-space: nowrap;
+}
+.project-index button::before { content: ""; width: 5px; height: 5px; border: 1px solid currentColor; border-radius: 50%; }
+.project-index button[aria-pressed="true"] { color: #f0c580; }
+.project-index button[aria-pressed="true"]::before { background: currentColor; }
+.project-index button:hover { color: #fff; }
+.map-actions {
+  position: absolute; right: 0; z-index: 1; display: flex; align-items: center; gap: .85rem;
+}
+.flight-shortcut { display: none; align-items: center; min-height: 36px; color: var(--amber); font-size: .86rem; }
+@media (min-width: 900px) {
+  .flight-deck:has(.brief-overlay:is([aria-busy="true"], .media-pending)) .flight-shortcut,
+  .flight-shortcut:is(:focus, :hover) { display: inline-flex; }
+}
 .motion-toggle {
-  position: absolute; right: 0; min-height: 36px; display: inline-flex; align-items: center; gap: .48rem;
+  min-height: 36px; display: inline-flex; align-items: center; gap: .48rem;
   padding: .3rem .6rem; border: 1px solid #78859866; border-radius: 2px;
   color: #cdd4df; background: #0a101bc2; font-size: .8rem;
 }
@@ -65,19 +156,88 @@
   width: 0; height: 0; border: 0; border-block: 4px solid transparent; border-left: 7px solid currentColor;
 }
 .motion-toggle:hover { color: #fff; border-color: #a9b3c2; }
+[data-camera] {
+  --bearing-from: 0; --bearing-to: 0;
+  --distance-from: var(--home-distance); --distance-to: var(--home-distance);
+  --target-from: var(--home-radius); --target-to: var(--home-radius);
+  --camera-bearing: calc(var(--bearing-from) + (var(--bearing-to) - var(--bearing-from)) * var(--flight-progress));
+  --camera-distance: calc(var(--distance-from) + (var(--distance-to) - var(--distance-from)) * var(--flight-progress));
+  --camera-target: calc(var(--target-from) + (var(--target-to) - var(--target-from)) * var(--flight-progress));
+  transition: --flight-progress 1.5s cubic-bezier(.2, 0, .2, 1);
+  /* Sample the distance of a turn that accelerates for 20% of its time, then brakes for 80%. */
+  transition-timing-function: linear(
+    0, .003125 2.5%, .0125 5%, .05 10%, .1125 15%, .2 20%, .296875 25%,
+    .3875 30%, .471875 35%, .55 40%, .621875 45%, .6875 50%, .746875 55%,
+    .8 60%, .846875 65%, .8875 70%, .921875 75%, .95 80%, .971875 85%,
+    .9875 90%, .996875 95%, .999219 97.5%, 1
+  );
+}
+[data-camera].instant, .motion-paused [data-camera] { transition: none; }
 .star-chart {
-  --hud-pin: 39; --hud-title-height: 2.9rem;
+  --unit: clamp(134px, min(18.8vw, 39cqh), 294px);
+  --hud-pin: 46; --hud-title-height: 2.9rem;
   --hud-width: clamp(244px, 23cqw, 322px);
   --hud-left: max(3.1cqw, calc(31cqw - var(--hud-width)));
-  position: relative; isolation: isolate; flex: 1; min-height: clamp(355px, 60svh, 425px); container-type: size;
+  /* A definite flex basis makes the chart height available to the connector's cqh units. */
+  position: relative; isolation: isolate; flex: 1 0 clamp(330px, 53svh, 405px); container-type: size;
 }
 .orbit-map {
-  --orbit-turn: 0; --unit: clamp(160px, min(21.2vw, 48cqh), 338px);
-  position: absolute; inset: 0; margin: 0; isolation: isolate; container-type: size;
-  transition: --orbit-turn 420ms cubic-bezier(.36, .05, .2, 1);
+  --course-glow: drop-shadow(0 0 2px #72d9ffb8) drop-shadow(0 0 6px #48b9e780);
+  position: absolute; z-index: 1; inset: 0; margin: 0; isolation: isolate; container-type: size;
 }
-.orbit-map.instant { transition: none; }
-.routes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.route-field {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+.route-field, .crossing-ink .routes {
+  /* Light falls away at the edges of the projection above the emitter. */
+  mask-image: linear-gradient(90deg, transparent, #000 8% 92%, transparent),
+    linear-gradient(transparent, #000 10% 86%, transparent);
+  mask-composite: intersect;
+}
+.routes {
+  display: block; width: 100%; height: 100%; overflow: hidden;
+  filter: var(--course-glow);
+}
+.orbit-track { opacity: .69; }
+@supports (width: calc(1px * sqrt(2))) {
+  .orbit-track {
+    /* Project the near/far ends of the circle to recover its exact screen ellipse. */
+    --near-gap: calc(var(--camera-distance) - var(--depth-per-radius) * var(--radius));
+    --far-gap: calc(var(--camera-distance) + var(--depth-per-radius) * var(--radius));
+    --near: calc((var(--radius) - var(--camera-target)) / var(--near-gap));
+    --far: calc((-1 * var(--radius) - var(--camera-target)) / var(--far-gap));
+    transform: matrix(calc(var(--radius) / sqrt(var(--near-gap) * var(--far-gap))), 0, 0,
+      calc((var(--near) - var(--far)) / 2), 0, calc((var(--near) + var(--far)) / 2));
+  }
+}
+.orbit-track.is-current { opacity: 1; }
+.system-star {
+  --gap: var(--camera-distance);
+  --course-x: calc(var(--cx) - var(--front-x) * var(--camera-target) / var(--gap));
+  --course-y: calc(var(--cy) - var(--ry) * var(--camera-target) / var(--gap));
+  position: absolute; z-index: calc(1000 / var(--gap)); pointer-events: none;
+  left: calc(var(--course-x) * 1%); top: calc(var(--course-y) * 1%);
+  width: calc(clamp(27px, 3cqw, 47px) * var(--home-distance) / var(--camera-distance)); aspect-ratio: 1;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 38% 32%, #fffce3 1%, transparent 34%),
+    radial-gradient(ellipse at 65% 55%, #eaa54f7a, transparent 23%),
+    radial-gradient(ellipse at 35% 65%, #efaa515e, transparent 27%),
+    radial-gradient(circle at 47% 46%, #fff5c9 25%, #ffe5a0 64%, #ffcb77 88%, #e99b45);
+  box-shadow: 0 0 4px 2px #fff3cb, 0 0 11px 5px #ffdc93bf;
+}
+.system-star::before, .system-star::after { content: ""; position: absolute; pointer-events: none; }
+.system-star::before {
+  inset: -105%; border-radius: 50%;
+  background: repeating-conic-gradient(from 13deg, transparent 0 17deg, #ffda8f63 23deg, transparent 30deg 43deg);
+  mask-image: radial-gradient(circle closest-side, transparent 27%, #000b 38%, transparent 92%); filter: blur(3px);
+}
+.system-star::after {
+  /* The corona expands with the projected disc as the camera approaches. */
+  inset: -205%; border-radius: 50%; z-index: -1;
+  background: radial-gradient(circle closest-side, transparent 14%, #ffe6a7aa 20%,
+    #ffd08082 26%, #ffba5e4f 40%, #f7aa4b26 59%, #ee97430d 78%, transparent);
+}
 .planet-choice {
   --depth-scale: var(--initial-scale);
   position: absolute; top: var(--initial-y); left: var(--initial-x);
@@ -85,61 +245,143 @@
   border: 0; border-radius: 50%; padding: 0; background: transparent; text-align: left; isolation: isolate;
 }
 @supports (left: calc(1% * cos(0deg))) {
-  .planet-choice, .is-binary .world, .hud-leader {
-    --theta: calc(var(--base) + var(--orbit-turn) * 1deg + var(--body-offset, 0deg));
-    --depth: cos(var(--theta));
-    --phase: atan2(calc(sqrt(2.4) * sin(var(--theta))), calc(1.7 * var(--depth) - .7));
-    --u: sin(var(--phase));
-    --v: cos(var(--phase));
-    --course-x: calc(var(--cx) + var(--rx) * var(--u));
-    --course-y: calc(var(--cy) + var(--tilt-y) * var(--u) + var(--ry) * var(--v));
+  .planet-choice {
+    --theta: calc(var(--base) - var(--camera-bearing) * 1deg);
+  }
+  .planet-choice, .is-binary .world {
+    --u: calc(var(--radius) * sin(var(--theta) + var(--body-offset, 0deg)));
+    --v: calc(var(--radius) * cos(var(--theta) + var(--body-offset, 0deg)));
+    --gap: calc(var(--camera-distance) - var(--depth-per-radius) * var(--v));
+    --course-x: calc(var(--cx) + (var(--rx) * var(--u) + var(--front-x) * (var(--v) - var(--camera-target))) / var(--gap));
+    --course-y: calc(var(--cy) + (var(--tilt-y) * var(--u) + var(--ry) * (var(--v) - var(--camera-target))) / var(--gap));
   }
   .planet-choice {
     --system-x: var(--course-x);
     --system-y: var(--course-y);
-    --depth-scale: calc(1 / (2.4 - 1.4 * var(--depth)));
+    --depth-scale: calc(1 / var(--gap));
     top: calc(var(--system-y) * 1%);
     left: calc(var(--system-x) * 1%);
-    z-index: calc(1 + 20 * var(--depth-scale));
+    z-index: calc(1000 * var(--depth-scale));
   }
+}
+.hud-connector { display: contents; --leader-duration: 240ms; }
+.hud-leader, .hud-rule { position: absolute; top: calc(var(--hud-pin) * 1% - .5px); height: 1px; pointer-events: none; }
+.hud-rule {
+  z-index: 3; left: var(--hud-left); width: var(--hud-width);
+  background: #d3aa6ebf; transform-origin: right center;
 }
 .hud-leader { display: none; }
 @supports (width: hypot(1px, 2px)) {
   .hud-leader {
-    --base: var(--focus-base, 0deg);
-    --dx: calc(var(--course-x) * 1cqw - var(--hud-left) - var(--hud-width));
-    --dy: calc((var(--course-y) - var(--hud-pin)) * 1cqh);
-    display: block; position: absolute; pointer-events: none;
-    top: calc(var(--hud-pin) * 1% - .5px); left: calc(var(--hud-left) + var(--hud-width));
-    width: hypot(var(--dx), var(--dy)); height: 1px;
+    /* The two HUD arcs finish 113 viewBox units left of centre, on a 240-unit SVG. */
+    --tip-radius: calc(var(--unit) * var(--focus-zoom) * var(--ring-span) * 113 / 240);
+    --anchor-x: calc(var(--hud-left) + var(--hud-width));
+    --dx: calc(var(--cx) * 1cqw - var(--tip-radius) * cos(var(--ring-tilt)) - var(--anchor-x));
+    --dy: calc((var(--cy) - var(--hud-pin)) * 1cqh - var(--tip-radius) * sin(var(--ring-tilt)));
+    display: block; z-index: 0; left: var(--anchor-x); width: hypot(var(--dx), var(--dy));
     transform-origin: 0 50%; transform: rotate(atan2(var(--dy), var(--dx)));
+  }
+  .hud-stroke {
+    position: absolute; inset: 0; transform-origin: right center;
     background: linear-gradient(90deg, #cfaa70ba, #d6b7858c);
   }
 }
 .planet-choice:focus-visible { outline-color: var(--focus); outline-offset: 6px; }
-.planet-system, .world, .crust, .rotating-surface, .world::after { position: absolute; border-radius: 50%; }
+.planet-system[data-surface="vishue"] {
+  --surface-color: #782c4c; --terrain-blend: luminosity; --exposure: .81;
+  --air: 235 174 192; --night: 36 12 29;
+}
+.planet-system[data-surface="changup-on"] {
+  --surface-color: #2f7bf0; --terrain-blend: luminosity; --exposure: 1;
+  --air: 157 197 255; --night: 9 22 52;
+}
+.planet-system[data-surface="duip"] {
+  --surface-color: #194736; --air: 165 222 191; --night: 8 29 28;
+}
+.planet-system, .world, .terrain, .crust, .rotating-surface, .world::before, .world::after { position: absolute; border-radius: 50%; }
 .planet-system { inset: 0; }
+.planet-bodies { position: absolute; inset: 0; z-index: 1; }
 .world {
   width: 100%; aspect-ratio: 1; left: 50%; top: 50%; overflow: hidden;
-  background: #504a63; border: 1px solid #bfc5dc86; z-index: 1;
+  isolation: isolate; background: var(--surface-color); border: 1px solid rgb(var(--air) / .62); z-index: 1;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 7px #c2c6e338, 1px 5px 16px #03050b81;
+  box-shadow: 0 0 7px rgb(var(--air) / .26), 1px 5px 16px #03050b81;
 }
+.planet-choice[aria-pressed="true"] .world {
+  box-shadow: 0 0 4px rgb(var(--air) / .58), 0 0 18px rgb(var(--air) / .21), 0 0 42px rgb(var(--air) / .09);
+}
+/* Apply the same mineral tint to the still image and its rotating projection. */
+.terrain { inset: 0; mix-blend-mode: var(--terrain-blend, normal); filter: brightness(var(--exposure, 1)); }
 .crust, .rotating-surface { inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .crust { object-fit: cover; }
+.world::before {
+  content: ""; inset: 0; z-index: 1; pointer-events: none; opacity: .67;
+  background-image:
+    linear-gradient(to bottom, transparent 5%, rgb(var(--air) / .04) 24%, rgb(var(--air) / .14) 42%, rgb(var(--air) / .28) 49%, transparent 76%),
+    url("../bridge/globe-grid.svg"),
+    repeating-linear-gradient(to bottom, transparent 0 3px, rgb(var(--air) / .10) 3px 4px);
+  background-size: 100% 36%, 100% 100%, 100% 100%;
+  background-position: center -70%, center, center;
+  background-repeat: no-repeat;
+}
+.planet-choice[aria-pressed="true"] .world::before { opacity: 1; }
 .world::after {
   content: ""; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse 115% 110% at 73% 6%, #f0f3ff26, #a3aec80a 24%, #2a34504a 43%, #0e1729bf 64%, #060b16f0 88%);
-  box-shadow: inset -2px 2px 6px #cfdbff77, inset 3px -1px 6px #738ac559;
+  background:
+    radial-gradient(circle closest-side, transparent 66%, rgb(var(--air) / .04) 80%, rgb(var(--air) / .26) 96%, rgb(var(--air) / .58) 100%),
+    radial-gradient(ellipse 115% 110% at 73% 6%, #fff8ee22, transparent 28%, rgb(var(--night) / .24) 45%,
+      rgb(var(--night) / .68) 67%, rgb(var(--night) / .94) 90%);
+  box-shadow: inset -2px 2px 6px rgb(var(--air) / .45), inset 3px -1px 6px rgb(var(--air) / .28);
 }
-.is-binary .world { width: 63%; left: 30%; top: 43%; }
-.is-binary .companion { width: 55%; left: 71%; top: 56%; filter: saturate(.68) brightness(.91); }
+@keyframes surface-scan {
+  0%, 10% { background-position: center -70%, center, center; }
+  85%, 100% { background-position: center 170%, center, center; }
+}
+.planet-pair .world { width: 63%; left: 30%; top: 43%; }
+.planet-pair .companion {
+  --surface-color: #34b36a; --air: 146 222 186; --night: 9 38 35; --exposure: .96;
+  width: 55%; left: 71%; top: 56%;
+}
+.orbit-crossing { display: none; }
 @media (min-width: 900px) {
+  /* The space around the twin globes can show another selectable planet. */
+  .planet-choice { pointer-events: none; }
+  .planet-choice :is(.world, .planet-label) { pointer-events: auto; }
   @supports (left: calc(1cqw * cos(0deg))) {
-    /* Keep each member on the course and the pair close at any window width. */
+    .orbit-map {
+      /* The projected u axis joins points of equal camera depth on the orbit plane. */
+      --axis-x: calc(var(--rx) * 1cqw); --axis-y: calc(var(--tilt-y) * 1cqh);
+      --plane-angle: atan2(var(--axis-y), var(--axis-x));
+      --focal-length: hypot(var(--axis-x), var(--axis-y));
+      --plane-rise: calc(cos(var(--plane-angle)) * var(--ry) * 1cqh - sin(var(--plane-angle)) * var(--front-x) * 1cqw);
+    }
+    .orbit-crossing {
+      /* The plane emerges in front of the sphere along its near, foreshortened equator. */
+      --inclination: atan2(var(--plane-rise) * (var(--camera-distance) - var(--depth-per-radius) * var(--camera-target)),
+        var(--focal-length) * var(--depth-per-radius) * var(--gap));
+      --equator-height: calc(50% * sin(var(--inclination)));
+      position: absolute; display: block; inset: 0; z-index: 2; border-radius: 50%; overflow: hidden;
+      pointer-events: none; rotate: var(--plane-angle); clip-path: inset(50% 0 0);
+      mask-image: radial-gradient(ellipse 50% var(--equator-height), transparent 98%, #000 100%);
+    }
+    .crossing-ink {
+      /* Sample the original light field in screen orientation, with room for its halo. */
+      position: absolute; inset: -16px; overflow: hidden;
+      rotate: calc(0deg - var(--plane-angle)); filter: var(--course-glow);
+    }
+    .crossing-ink .routes {
+      position: absolute; width: 100cqw; height: 100cqh; filter: none;
+      left: calc(50% - var(--course-x) * 1cqw); top: calc(50% - var(--course-y) * 1cqh);
+    }
+    /* Local screen-space tangent of the same perspective curve as the route. */
+    .is-binary {
+      --tangent-x: calc((var(--rx) * var(--v) - var(--u) * (var(--front-x) + var(--depth-per-radius) * (var(--system-x) - var(--cx)))) / var(--gap) * 1cqw);
+      --tangent-y: calc((var(--tilt-y) * var(--v) - var(--u) * (var(--ry) + var(--depth-per-radius) * (var(--system-y) - var(--cy)))) / var(--gap) * 1cqh);
+      --pair-offset: min(12deg, atan2(calc(var(--unit) * var(--depth-scale) * .22), hypot(var(--tangent-x), var(--tangent-y))));
+    }
     .is-binary .world {
-      --pair-offset: atan2(calc(var(--unit) * .20), calc(var(--rx) * 1.55cqw));
       --body-offset: calc(-1 * var(--pair-offset));
+      z-index: calc(1000 / var(--gap));
       left: calc(50% + (var(--course-x) - var(--system-x)) * 1cqw);
       top: calc(50% + (var(--course-y) - var(--system-y)) * 1cqh);
     }
@@ -150,11 +392,11 @@
 .selection-ring {
   --sweep-period: 9s;
   position: absolute; visibility: hidden; pointer-events: none;
-  top: 50%; left: 50%; width: 178%; height: auto; overflow: visible;
-  transform: translate(-50%, -50%) rotate(15deg); stroke: #e5b26a; stroke-width: .95;
+  top: 50%; left: 50%; width: calc(100% * var(--ring-span)); height: auto; overflow: visible;
+  transform: translate(-50%, -50%) rotate(var(--ring-tilt)); stroke: #e5b26a; stroke-width: .95;
 }
-.ring-back { --arc-start: 0; opacity: .77; }
-.ring-front { --arc-start: 180; z-index: 2; }
+.ring-back { --arc-start: 0; --draw-from: -180px; opacity: .77; }
+.ring-front { --arc-start: 180; --draw-from: 180px; z-index: 2; }
 .ring-rail { stroke-width: 1.65; stroke-dasharray: 33 7 4 16; opacity: .73; }
 .ring-ticks { stroke-width: 1.3; stroke-dasharray: .55 8.45; opacity: .79; }
 .ring-scan, .ring-marker {
@@ -168,6 +410,7 @@
   stroke: #fff1c8; stroke-width: 2.85; stroke-dasharray: .55 359.45;
 }
 .planet-choice[aria-pressed="true"] .selection-ring { visibility: visible; }
+.planet-choice[data-hud="in-flight"] .selection-ring { display: none; }
 
 /* Each half covers 180 path units. Their phases meet at either limb. */
 @keyframes ring-sweep {
@@ -178,11 +421,14 @@
   from { stroke-dashoffset: 0px; }
   to { stroke-dashoffset: 60px; }
 }
-@keyframes ring-acquire {
-  from { stroke: #ffe6b3; stroke-width: 1.85; }
-  to { stroke: #e5b26a; stroke-width: .95; }
+@keyframes hud-draw {
+  from { stroke-dashoffset: var(--draw-from); }
+  to { stroke-dashoffset: 0px; }
 }
 @media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .planet-choice[aria-pressed="true"] .world::before {
+    animation: surface-scan 7.5s linear infinite; animation-play-state: var(--scene-play, paused);
+  }
   .planet-choice[aria-pressed="true"] :is(.ring-scan, .ring-marker) {
     animation: ring-sweep var(--sweep-period) linear infinite;
     animation-delay: calc((var(--arc-start) - var(--signal-start)) / 360 * var(--sweep-period));
@@ -191,7 +437,11 @@
   .planet-choice[aria-pressed="true"] .ring-rail {
     animation: ring-index 6s linear infinite; animation-play-state: var(--scene-play, paused);
   }
-  .scene-playing .planet-choice[aria-pressed="true"] .ring-track { animation: ring-acquire 320ms ease-out; }
+  .scene-playing .planet-choice[data-hud="drawing"] .ring-ink { mask: var(--entry-mask); }
+  .scene-playing .planet-choice[data-hud="drawing"] .ring-reveal {
+    stroke-dasharray: 180 180;
+    animation: hud-draw 640ms cubic-bezier(.33, .02, .26, 1) both;
+  }
 }
 .planet-label {
   position: absolute; top: -13%; left: calc(85% + .8rem); display: grid; justify-items: start;
@@ -199,37 +449,49 @@
 }
 .planet-label::before {
   content: ""; position: absolute; right: 100%; top: .98rem; width: 1.1rem; height: .65rem;
-  border-bottom: 1px solid #b1c3d4; transform: skewY(-34deg); transform-origin: right bottom;
+  border-bottom: 1px solid #a2cbd5; transform: skewY(-34deg); transform-origin: right bottom;
 }
 .planet-label strong {
   font-size: clamp(1.12rem, 1.62vw, 1.75rem); letter-spacing: -.02em; line-height: 1.15;
-  padding-bottom: .17rem; border-bottom: 1px solid #afc2d4ad;
+  padding-bottom: .17rem; border-bottom: 1px solid #94bdccbd;
 }
 .planet-label small { font-size: .77rem; color: #c1cbd6; line-height: 1.45; }
 .planet-choice:hover .planet-label strong { color: #fff; border-color: #fff; }
+@media (min-width: 900px) {
+  .planet-label {
+    /* Turn the callout inward near the right edge of the glass. */
+    --flip: clamp(0, calc((var(--system-x) - 82) * 100), 1);
+    left: calc(85% + .8rem - var(--flip) * (70% + 1.6rem)); translate: calc(-100% * var(--flip)) 0;
+  }
+  .planet-label::before {
+    right: calc(100% - var(--flip) * (100% + 1.1rem));
+    transform: skewY(calc(-34deg + var(--flip) * 68deg)); transform-origin: calc((1 - var(--flip)) * 100%) bottom;
+  }
+}
 
 .brief-overlay {
-  position: absolute; z-index: 2; left: var(--hud-left);
-  top: calc(var(--hud-pin) * 1% - var(--hud-title-height)); width: var(--hud-width);
-  pointer-events: none;
+  position: absolute; inset: 0; pointer-events: none;
 }
+.brief-overlay[aria-busy="true"] .briefing,
+.brief-overlay[aria-busy="true"]:not(.brief-arrival) .hud-connector { visibility: hidden; }
 .briefing {
   --brief-pad: .35rem;
-  position: relative; isolation: isolate; color: #f2f1ee;
-  text-shadow: 0 1px 5px #03070e;
+  position: absolute; z-index: 2; isolation: isolate; left: var(--hud-left);
+  top: calc(var(--hud-pin) * 1% - var(--hud-title-height)); width: var(--hud-width);
+  color: #f2f1ee; text-shadow: 0 1px 5px #03070e;
 }
 .briefing::before {
   content: ""; position: absolute; z-index: -1; pointer-events: none; inset: -.55rem -1rem -.8rem -.8rem;
-  background: linear-gradient(90deg, #09111bda, #0b1320bc 70%, transparent);
+  background: linear-gradient(90deg, #08141ee8, #0a1823cd 70%, transparent);
   mask-image: linear-gradient(0deg, transparent, #000 15%, #000 84%, transparent);
 }
 .briefing a { pointer-events: auto; }
 .briefing .project-title {
   position: relative; height: var(--hud-title-height); gap: .66rem;
-  padding: 0 var(--brief-pad) .34rem; border-bottom: 1px solid #d3aa6ebf;
+  padding: 0 var(--brief-pad) .34rem;
 }
 .briefing .project-title::after {
-  content: ""; position: absolute; right: -2px; bottom: -2px; width: 4px; height: 4px;
+  content: ""; position: absolute; right: -2px; bottom: -1.5px; width: 4px; height: 4px;
   border-radius: 50%; background: #ecc48a;
 }
 .briefing .project-title h2 { font-size: clamp(1.72rem, 2.47vw, 2.75rem); }
@@ -263,37 +525,64 @@
 .static-projects { display: flex; justify-content: center; flex-wrap: wrap; gap: 1rem; padding: 1.25rem 0; }
 .static-projects a { padding: .6rem .9rem; background: #121824ec; }
 
-@keyframes edge-on { from { filter: brightness(.58); } to { filter: brightness(1); } }
-@keyframes route-on { from { opacity: .15; } to { opacity: 1; } }
-@keyframes lamp-on { from { opacity: 0; } to { opacity: 1; } }
-@keyframes rule-on { from { border-color: #79694d; } to { border-color: #d3aa6ebf; } }
-.booting .bridge-frame { animation: edge-on 180ms both; }
-.booting .console-light { animation: lamp-on 140ms 180ms both; }
-.booting .planet-system { animation: edge-on 240ms 320ms both; }
-.booting .routes { animation: route-on 240ms 320ms both; }
-.booting .briefing .project-title { animation: rule-on 240ms 560ms both; }
-.motion-paused .orbit-map { transition: none; }
+@keyframes brief-trace { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.brief-arrival :is(.service-figure, .detail-link) { transition: none; }
+@media (min-width: 900px) and (prefers-reduced-motion: no-preference) {
+  .scene-playing .brief-arrival[aria-busy="true"] .hud-stroke { animation: brief-trace var(--leader-duration) ease-in both; }
+  .scene-playing .brief-arrival[aria-busy="true"] .hud-rule { animation: brief-trace 360ms ease-out var(--leader-duration) both; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scene-playing ::highlight(brief-unwritten) { color: transparent; text-shadow: none; }
+  .scene-playing .brief-arrival :is(.service-figure, .detail-link) {
+    transition: opacity 260ms ease-out;
+    /* Light up, dip once, then settle at full brightness. */
+    transition-timing-function: linear(0, .92 20% 40%, .32 42% 60%, 1 82% 100%);
+  }
+  .scene-playing .brief-arrival.media-pending :is(.service-figure, .detail-link) {
+    visibility: hidden; opacity: 0; transition: none;
+  }
+}
+
+@media (min-width: 900px) {
+  @container (max-height: 380px) {
+    .brief-overlay { --hud-title-height: 2.1rem; }
+    .briefing .project-title h2 { font-size: clamp(1.45rem, 2.1vw, 1.95rem); }
+    .briefing .project-mark { width: 18px; height: 18px; }
+    .brief-summary { margin-top: .22rem; font-size: clamp(.98rem, 1.15vw, 1.08rem); line-height: 1.25; }
+    .briefing .brief-role { margin-top: .12rem; font-size: .83rem; line-height: 1.4; }
+    .brief-evidence { margin-top: .36rem; gap: .55rem; }
+    .brief-evidence .service-figure { flex-basis: clamp(61px, 6.3cqw, 82px); }
+    .brief-evidence .service-figure img { aspect-ratio: 1.5; }
+    .brief-metric, .brief-highlight { line-height: 1.35; }
+    .brief-metric .brief-values { font-size: 1.06rem; line-height: 1.15; margin: .08rem 0; }
+    .brief-metric small { font-size: .72rem; line-height: 1.35; }
+    .detail-link { min-height: 34px; margin: .32rem var(--brief-pad) 0; padding: .27rem .65rem; font-size: .9rem; }
+  }
+}
+
 .space-window::before, .starlight::before, .starlight::after { animation-play-state: var(--scene-play, paused); }
 .scene-playing { --scene-play: running; }
 
 @media (max-width: 899px) {
+  [data-camera] { transition: none; }
   .bridge-home .site-header { background: #10151eee; border-bottom: 1px solid #515a68; }
-  .space-window { background-position: 42% top; }
-  .bridge-frame, .console-light, .routes, .hud-leader { display: none; }
+  .space-window::before { animation: none; }
+  .bridge-frame, .bridge-console, .console-light, .route-field, .hud-connector, .system-star, .project-index { display: none; }
   .flight-deck { flex: none; width: min(100%, 680px); margin: 0 auto; padding: 22px 20px 12px; }
   .map-toolbar { margin: 0 0 .65rem; justify-items: start; }
   .map-heading { font-size: 1.35rem; }
   .map-heading::before, .map-heading::after { display: none; }
-  .star-chart { display: flex; flex-direction: column; gap: 16px; container-type: normal; min-height: 0; }
-  .orbit-map { position: relative; inset: auto; display: grid; gap: 4px; container-type: normal; transition: none; }
+  .star-chart { display: flex; flex: none; flex-direction: column; gap: 16px; container-type: normal; }
+  .orbit-map { position: relative; inset: auto; display: grid; gap: 4px; container-type: normal; }
   .planet-choice {
     position: relative; top: auto; left: auto; display: flex; align-items: center; gap: .65rem;
     width: 100%; height: auto; aspect-ratio: auto; min-height: 53px; padding: 1px .65rem;
     background: #111722e8; border: 1px solid #465060; border-radius: 3px; transform: none;
   }
   .planet-choice[aria-pressed="true"] { background: #25221de8; border-color: #bc9256; }
-  .planet-system { position: relative; inset: auto; display: block; flex: 0 0 42px; height: 42px; }
-  .planet-system .world { width: 72%; }
+  .planet-choice .planet-system { position: relative; inset: auto; display: block; flex: 0 0 42px; height: 42px; }
+  .planet-choice .world { width: 72%; }
+  .planet-choice .world::before { background-image: url("../bridge/globe-grid.svg"); background-size: cover; background-position: center; opacity: .42; }
   .is-binary .planet-system .world { width: 54%; }
   .is-binary .planet-system .companion { width: 48%; }
   .selection-ring { display: none; }
@@ -304,10 +593,10 @@
   .planet-label { position: static; display: flex; align-items: baseline; gap: .65rem; max-width: none; }
   .planet-label strong { padding: 0; border: none; font-size: 1.12rem; }
   .planet-label::before { display: none; }
-  .brief-overlay { position: static; width: auto; }
-  .briefing { padding: 16px; background: #0d1420eb; border: 1px solid #65717e8c; pointer-events: auto; }
+  .brief-overlay { position: static; inset: auto; }
+  .briefing { position: relative; inset: auto; width: auto; padding: 16px; background: #0d1420eb; border: 1px solid #65717e8c; pointer-events: auto; }
   .briefing::before { display: none; }
-  .briefing .project-title { padding: 0 0 .45rem; }
+  .briefing .project-title { padding: 0 0 .45rem; border-bottom: 1px solid #d3aa6ebf; }
   .briefing .project-title h2 { font-size: 2.05rem; }
   .briefing .project-title::after { display: none; }
   .brief-summary { margin: .75rem 0 0; font-size: 1.17rem; }
@@ -330,8 +619,6 @@
 @keyframes mobile-ring { to { transform: rotate(1turn); } }
 @media (max-width: 400px) { .flight-deck { padding-inline: 14px; } }
 @media (prefers-reduced-motion: reduce) {
-  .orbit-map { transition: none; }
-  .space-window::before, .starlight::before, .starlight::after,
-  .booting .bridge-frame, .booting .console-light, .booting .planet-system,
-  .booting .routes, .booting .briefing .project-title { animation: none; }
+  [data-camera] { transition: none; }
+  .space-window::before, .starlight::before, .starlight::after { animation: none; }
 }
