@@ -11,18 +11,16 @@
 
 {% macro planet_system(p, root, on_map=true) -%}
 {% set ring_id = p.slug if on_map else 'document-' ~ p.slug %}
-<span class="planet-system{% if p.get('paired') %} planet-pair{% endif %}" data-surface="{{ p.slug }}" aria-hidden="true">
+<span class="planet-system" data-surface="{{ p.slug }}" aria-hidden="true">
   {{ ring_half('back', ring_id) }}
   <span class="planet-bodies">
-    {% for body in range(2 if p.get('paired') else 1) %}
-    <span class="world{% if body %} companion{% endif %}">
+    <span class="world">
       <span class="terrain">
         <img class="crust" src="{{ root }}{{ assets['bridge/' ~ p.slug ~ '.webp'] }}" alt="" width="768" height="384" draggable="false">
         {% if on_map %}<canvas class="rotating-surface" width="1" height="1"></canvas>{% endif %}
       </span>
       {% if on_map %}{{ foreground_courses() }}{% endif %}
     </span>
-    {% endfor %}
   </span>
   {{ ring_half('front', ring_id) }}
 </span>

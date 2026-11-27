@@ -3,14 +3,14 @@
     <div class="route-field" aria-hidden="true">{% include "components/routes.svg" %}</div>
     <span class="system-star" aria-hidden="true">{{ foreground_courses() }}</span>
     {% for p in projects %}
-    <button class="planet-choice{% if p.get('paired') %} is-binary{% endif %}" type="submit"
+    <button class="planet-choice" type="submit"
             formaction="{{ root }}projects/{{ p.slug }}/" formmethod="get"
             data-project="{{ p.slug }}" data-camera-distance="{{ p.camera_distance }}"
             aria-pressed="{{ 'true' if loop.first else 'false' }}"
-            aria-controls="project-briefing" aria-label="{{ p.name }}, {{ p.stage }}"
+            aria-controls="project-briefing" aria-label="{{ p.name }}, {{ p.summary }}"
             style="--base:{{ p.angle }}deg;--radius:{{ p.orbit.radius }};--initial-x:{{ p.x }}%;--initial-y:{{ p.y }}%;--initial-scale:{{ p.scale }}">
       {{ planet_system(p, root) }}
-      <span class="planet-label"><strong>{{ p.name }}</strong><small>{{ p.stage }}</small></span>
+      <span class="planet-label"><strong>{{ p.name }}</strong><small>{{ p.summary }}</small></span>
     </button>
     {% endfor %}
   </form>
