@@ -1,6 +1,7 @@
 """Build the portfolio from its project records, templates, and local assets."""
 
 import math
+import random
 import shutil
 import tempfile
 import tomllib
@@ -29,7 +30,7 @@ def load_projects() -> list[dict]:
     for source in (ROOT / "content/projects").glob("*.toml"):
         project = read_toml(source)
         slug = source.stem
-        for field in ("order", "name", "stage", "summary", "role", "contribution",
+        for field in ("order", "name", "summary", "role", "contribution",
                       "problem", "decision", "result", "stack", "links"):
             if not project.get(field):
                 raise ValueError(f"{source.name}: missing {field}")
@@ -99,8 +100,10 @@ def build() -> None:
         stage = Path(scratch) / "site"
         shutil.copytree(ROOT / "assets", stage / "assets")
         env.globals["assets"] = versioned_assets(stage / "assets", projects)
+        sky = random.Random(34)
+        star_sizes = [round(sky.uniform(1.7, 3.2), 2) for _ in range(34)]
         (stage / "index.html").write_text(
-            env.get_template("index.html").render(root="./"), encoding="utf-8"
+            env.get_template("index.html").render(root="./", star_sizes=star_sizes), encoding="utf-8"
         )
         for project in projects:
             directory = stage / "projects" / project["slug"]
