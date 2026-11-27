@@ -45,4 +45,4 @@ uv run --locked python -m http.server 4173 --bind 127.0.0.1 --directory dist
 
 프로젝트별 팀 저장소와 공개 시연, 실험 조건은 각 상세와 프로젝트 TOML에 연결했습니다. VISHUE의 제품 추천 화면은 팀 검증용 테스트 데이터입니다. 재현율 비교는 같은 사람 단위 테스트 분할에서 모공 전처리 조건을 바꾼 실험입니다.
 
-VISHUE의 버건디는 서비스 화면의 버튼색에서, 창업ON 이중 행성의 파랑과 초록은 로고에서 가져왔습니다. 두 프로젝트의 지형에는 Solar System Scope / INOVE의 Moon과 Venus Surface 지도를 사용했습니다. 두잎의 상록 숲·바다 지도와 창밖의 별 배경, 함교 프레임은 ImageGen으로 제작했습니다. 각 페이지 하단에서 이미지 출처와 라이선스를 볼 수 있습니다. Barlow의 배포 라이선스는 `assets/fonts/OFL-Barlow.txt`에 포함되어 있습니다.
+VISHUE의 버건디는 서비스 화면의 버튼색에서 가져왔고, 지형에는 Solar System Scope / INOVE의 표면 지도를 사용했습니다. 창업ON의 해왕성풍 구름 띠, 두잎의 상록 숲·바다 지도, 창밖의 별 배경과 함교 프레임은 ImageGen으로 제작했습니다. 각 페이지 하단에서 이미지 출처와 라이선스를 볼 수 있습니다. Barlow의 배포 라이선스는 `assets/fonts/OFL-Barlow.txt`에 포함되어 있습니다.

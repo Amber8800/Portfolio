@@ -64,7 +64,13 @@ ul { list-style: none; margin: 0; padding: 0; }
 .brief-role { display: flex; align-items: baseline; gap: .65rem; font-size: .95rem; line-height: 1.55; }
 .brief-role dt { color: var(--muted); flex-shrink: 0; }
 .brief-role dd { color: #e2e5ea; }
-.stack-list { display: flex; flex-wrap: wrap; gap: .35rem .85rem; color: #c4ccda; font-size: .92rem; }
+.stack-list { display: flex; flex-wrap: wrap; gap: .4rem; }
+.stack-list > li {
+  max-inline-size: 100%; padding: .2em .75em;
+  border: 1px solid #46616f; border-radius: 999px;
+  background: #192b37; color: #d4e6ed;
+  font-size: .9rem; line-height: 1.45; overflow-wrap: anywhere;
+}
 .service-figure img { display: block; width: 100%; height: auto; }
 .service-figure figcaption, .metric-context { margin-top: .45rem; color: var(--muted); font-size: .8rem; line-height: 1.45; }
 .comparison h3, .brief-highlight h3 { font-size: clamp(1rem, 1.34vw, 1.38rem); letter-spacing: -.035em; }
@@ -128,22 +134,22 @@ html:has(dialog[open]) { overflow: hidden; }
 .project-document { width: min(1140px, 89%); margin: 0 auto; padding: clamp(25px, 4vw, 60px) 0; flex: 1; }
 .breadcrumb, .other-projects { display: flex; align-items: baseline; gap: .8rem; color: var(--soft); }
 .breadcrumb { font-size: .92rem; }
-.breadcrumb a, .other-projects a, .reference-links a, .phase-list a { text-decoration-color: #768394; }
-.breadcrumb a:hover, .other-projects a:hover, .reference-links a:hover, .phase-list a:hover { color: var(--amber); }
+.breadcrumb a, .other-projects a, .reference-links a { text-decoration-color: #768394; }
+.breadcrumb a:hover, .other-projects a:hover, .reference-links a:hover { color: var(--amber); }
 .case-heading { padding: clamp(28px, 4.6vw, 68px) 0 2rem; border-bottom: 1px solid var(--line); }
 .case-heading .project-title h1 { font-size: clamp(3rem, 6vw, 5rem); }
 .case-summary { font-size: clamp(1.25rem, 2.2vw, 1.8rem); margin: .7rem 0; }
 .case-grid { display: grid; align-items: start; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: clamp(30px, 6vw, 80px); padding: 2.4rem 0; }
 .case-text section + section { margin-top: 1.7rem; }
 .case-text :is(h2, h3) { font-size: 1.27rem; letter-spacing: -.04em; margin-bottom: .45rem; }
-.case-text p, .phase-list { color: #cbd1db; font-size: 1.01rem; line-height: 1.78; }
+.case-text p { color: #cbd1db; font-size: 1.01rem; line-height: 1.78; }
+.case-text p + p { margin-top: .65em; }
 .case-evidence { padding: clamp(16px, 2.1vw, 30px); background: #141b26; border: 1px solid #3c4757; }
 .case-evidence .service-figure a { display: block; }
 .case-evidence .comparison, .case-evidence > :is(h2, h3) { margin-top: 1.4rem; }
 .case-evidence .comparison:first-child { margin-top: 0; }
 .reference-links { display: grid; gap: .5rem; color: var(--soft); }
-.phase-list > div { border-left: 2px solid #987441; padding-left: .8rem; margin-top: .8rem; }
-.phase-list dt { color: var(--amber); font-weight: 700; }
+.reference-links a { overflow-wrap: anywhere; }
 .other-projects { border-top: 1px solid var(--line); padding-top: 1.2rem; gap: 1.25rem; }
 .other-projects span { color: var(--muted); font-size: .9rem; }
 .project-page .site-footer { padding-block: 1rem; }
@@ -232,14 +238,14 @@ html:has(dialog[open]) { overflow: hidden; }
 .document-projection .planet-system { position: relative; inset: auto; display: block; width: min(53%, 108px); aspect-ratio: 1; }
 .document-projection .selection-ring { display: block; visibility: visible; }
 .document-body .case-grid { gap: clamp(24px, 3vw, 40px); padding: 1.5rem 0 2.1rem; }
-.document-body :is(.brief-role dd, .case-text p, .phase-list, .stack-list) { color: var(--soft); }
+.document-body :is(.brief-role dd, .case-text p) { color: var(--soft); }
 .document-body .case-text section + section { margin-top: 1.25rem; }
 .document-body .case-text h3 { font-size: 1.14rem; }
 .document-body .case-text p { line-height: 1.72; }
 .document-body .case-evidence { padding: 0 0 0 clamp(16px, 2vw, 26px); background: none; border: 0; border-left: 1px solid var(--line); }
 .document-body .case-evidence > h3 { color: var(--cyan); font-size: .95rem; }
 .document-body .service-figure a { padding: 3px; border: 1px solid #668999a6; background: #06121d; }
-.document-body .reference-links a, .document-body .phase-list a { text-decoration-color: #7594a3; }
+.document-body .reference-links a { text-decoration-color: #7594a3; }
 @media (prefers-reduced-motion: no-preference) {
   .bridge-home:not(.motion-paused) .document-dialog[open]::after { animation: projector-on 320ms ease-out; }
   @keyframes projector-on { from { transform: scaleX(.08); opacity: .5; } }

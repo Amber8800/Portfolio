@@ -18,21 +18,42 @@
   width: max(110cqw, 165cqh); aspect-ratio: 3 / 2;
   background: url("../bridge/deep-space.webp") center / 100% 100% no-repeat;
   mask-image: linear-gradient(#000 54%, transparent 67%);
-  animation: nebula-drift 26s ease-in-out infinite alternate;
 }
-@keyframes nebula-drift {
-  from { transform: translate(-.55%, -.2%); }
-  to { transform: translate(.65%, .28%); }
+.starlight { position: absolute; inset: 0; overflow: hidden; }
+.starlight i {
+  /* Project each ray through the edge of the window, even on a wide display. */
+  --dx: calc(76cqw * cos(var(--bearing)));
+  --dy: calc(84cqh * sin(var(--bearing)));
+  --angle: atan2(var(--dy), var(--dx));
+  position: absolute; left: 50%; top: 44%; width: var(--size); height: var(--size);
+  border-radius: 50%; color: #bddfff; background: #f4faff;
+  box-shadow: 0 0 3px 1px currentColor;
+  animation: forward-star var(--period) linear var(--delay) infinite;
+  animation-play-state: var(--scene-play, paused);
 }
-.starlight { position: absolute; inset: 0; overflow: hidden; mask-image: linear-gradient(#000 65%, transparent 89%); }
-.starlight::before, .starlight::after {
-  content: ""; position: absolute; inset: -30px -320px;
-  background: url("../bridge/star-drift.svg") repeat; pointer-events: none;
+.starlight i::before {
+  content: ""; position: absolute; right: 50%; top: 12%; height: 76%;
+  width: calc(18 * var(--size)); border-radius: 100% 35% 35% 100%;
+  background: linear-gradient(90deg, transparent, currentColor 77%, #f4faff);
+  filter: drop-shadow(0 0 1px currentColor); transform-origin: right center;
+  animation: star-tail var(--period) linear var(--delay) infinite;
+  animation-play-state: var(--scene-play, paused);
 }
-.starlight::before { opacity: .51; background-size: 244px 179px; animation: far-stars 160s linear infinite; }
-.starlight::after { opacity: .76; background-size: 311px 228px; background-position: 57px 69px; animation: near-stars 78s linear infinite; }
-@keyframes far-stars { to { transform: translate3d(-244px, 0, 0); } }
-@keyframes near-stars { to { transform: translate3d(-311px, 0, 0); } }
+.starlight i:nth-child(5n) { color: #e6cdad; }
+@keyframes forward-star {
+  from { opacity: 0; transform: translate(calc(var(--dx) * .055), calc(var(--dy) * .055)) rotate(var(--angle)) scale(.6); }
+  45% {
+    opacity: .68; transform: translate(calc(var(--dx) * .22), calc(var(--dy) * .22)) rotate(var(--angle)) scale(.82);
+    animation-timing-function: cubic-bezier(.44, .115, .78, .44);
+  }
+  to { opacity: 1; transform: translate(var(--dx), var(--dy)) rotate(var(--angle)) scale(1.12); }
+}
+@keyframes star-tail {
+  from { opacity: 0; transform: scaleX(.02); }
+  45% { opacity: .3; transform: scaleX(.07); }
+  82% { opacity: .93; transform: scaleX(.65); }
+  to { opacity: 1; transform: scaleX(1); }
+}
 .bridge-home { --ring-span: 1.78; --ring-tilt: 28deg; }
 .bridge-home .site-shell {
   --console-zoom: 1.48; --console-slice: 27%;
@@ -247,10 +268,8 @@
 @supports (left: calc(1% * cos(0deg))) {
   .planet-choice {
     --theta: calc(var(--base) - var(--camera-bearing) * 1deg);
-  }
-  .planet-choice, .is-binary .world {
-    --u: calc(var(--radius) * sin(var(--theta) + var(--body-offset, 0deg)));
-    --v: calc(var(--radius) * cos(var(--theta) + var(--body-offset, 0deg)));
+    --u: calc(var(--radius) * sin(var(--theta)));
+    --v: calc(var(--radius) * cos(var(--theta)));
     --gap: calc(var(--camera-distance) - var(--depth-per-radius) * var(--v));
     --course-x: calc(var(--cx) + (var(--rx) * var(--u) + var(--front-x) * (var(--v) - var(--camera-target))) / var(--gap));
     --course-y: calc(var(--cy) + (var(--tilt-y) * var(--u) + var(--ry) * (var(--v) - var(--camera-target))) / var(--gap));
@@ -292,7 +311,7 @@
   --air: 235 174 192; --night: 36 12 29;
 }
 .planet-system[data-surface="changup-on"] {
-  --surface-color: #2f7bf0; --terrain-blend: luminosity; --exposure: 1;
+  --surface-color: #193f9a;
   --air: 157 197 255; --night: 9 22 52;
 }
 .planet-system[data-surface="duip"] {
@@ -337,14 +356,9 @@
   0%, 10% { background-position: center -70%, center, center; }
   85%, 100% { background-position: center 170%, center, center; }
 }
-.planet-pair .world { width: 63%; left: 30%; top: 43%; }
-.planet-pair .companion {
-  --surface-color: #34b36a; --air: 146 222 186; --night: 9 38 35; --exposure: .96;
-  width: 55%; left: 71%; top: 56%;
-}
 .orbit-crossing { display: none; }
 @media (min-width: 900px) {
-  /* The space around the twin globes can show another selectable planet. */
+  /* Only the visible globe and label intercept clicks on overlapping orbits. */
   .planet-choice { pointer-events: none; }
   .planet-choice :is(.world, .planet-label) { pointer-events: auto; }
   @supports (left: calc(1cqw * cos(0deg))) {
@@ -373,19 +387,6 @@
       position: absolute; width: 100cqw; height: 100cqh; filter: none;
       left: calc(50% - var(--course-x) * 1cqw); top: calc(50% - var(--course-y) * 1cqh);
     }
-    /* Local screen-space tangent of the same perspective curve as the route. */
-    .is-binary {
-      --tangent-x: calc((var(--rx) * var(--v) - var(--u) * (var(--front-x) + var(--depth-per-radius) * (var(--system-x) - var(--cx)))) / var(--gap) * 1cqw);
-      --tangent-y: calc((var(--tilt-y) * var(--v) - var(--u) * (var(--ry) + var(--depth-per-radius) * (var(--system-y) - var(--cy)))) / var(--gap) * 1cqh);
-      --pair-offset: min(12deg, atan2(calc(var(--unit) * var(--depth-scale) * .22), hypot(var(--tangent-x), var(--tangent-y))));
-    }
-    .is-binary .world {
-      --body-offset: calc(-1 * var(--pair-offset));
-      z-index: calc(1000 / var(--gap));
-      left: calc(50% + (var(--course-x) - var(--system-x)) * 1cqw);
-      top: calc(50% + (var(--course-y) - var(--system-y)) * 1cqh);
-    }
-    .is-binary .companion { --body-offset: calc(1.1 * var(--pair-offset)); }
   }
   .planet-choice[aria-pressed="true"] .planet-label { visibility: hidden; }
 }
@@ -445,7 +446,7 @@
 }
 .planet-label {
   position: absolute; top: -13%; left: calc(85% + .8rem); display: grid; justify-items: start;
-  gap: .18rem; width: max-content; max-width: 8.5rem; text-shadow: 0 1px 6px #080b12, 0 2px 9px #000;
+  gap: .18rem; width: max-content; text-shadow: 0 1px 6px #080b12, 0 2px 9px #000;
 }
 .planet-label::before {
   content: ""; position: absolute; right: 100%; top: .98rem; width: 1.1rem; height: .65rem;
@@ -560,13 +561,12 @@
   }
 }
 
-.space-window::before, .starlight::before, .starlight::after { animation-play-state: var(--scene-play, paused); }
 .scene-playing { --scene-play: running; }
 
 @media (max-width: 899px) {
   [data-camera] { transition: none; }
   .bridge-home .site-header { background: #10151eee; border-bottom: 1px solid #515a68; }
-  .space-window::before { animation: none; }
+  .starlight i:nth-child(n+13) { display: none; }
   .bridge-frame, .bridge-console, .console-light, .route-field, .hud-connector, .system-star, .project-index { display: none; }
   .flight-deck { flex: none; width: min(100%, 680px); margin: 0 auto; padding: 22px 20px 12px; }
   .map-toolbar { margin: 0 0 .65rem; justify-items: start; }
@@ -583,14 +583,12 @@
   .planet-choice .planet-system { position: relative; inset: auto; display: block; flex: 0 0 42px; height: 42px; }
   .planet-choice .world { width: 72%; }
   .planet-choice .world::before { background-image: url("../bridge/globe-grid.svg"); background-size: cover; background-position: center; opacity: .42; }
-  .is-binary .planet-system .world { width: 54%; }
-  .is-binary .planet-system .companion { width: 48%; }
   .selection-ring { display: none; }
   .planet-choice[aria-pressed="true"] .planet-system::after {
     content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--amber);
     background: radial-gradient(circle at 50% 2px, #ffe1a4 1px, transparent 2px);
   }
-  .planet-label { position: static; display: flex; align-items: baseline; gap: .65rem; max-width: none; }
+  .planet-label { position: static; display: flex; flex-wrap: wrap; align-items: baseline; gap: .15rem .65rem; min-width: 0; }
   .planet-label strong { padding: 0; border: none; font-size: 1.12rem; }
   .planet-label::before { display: none; }
   .brief-overlay { position: static; inset: auto; }
@@ -620,5 +618,5 @@
 @media (max-width: 400px) { .flight-deck { padding-inline: 14px; } }
 @media (prefers-reduced-motion: reduce) {
   [data-camera] { transition: none; }
-  .space-window::before, .starlight::before, .starlight::after { animation: none; }
+  .starlight { display: none; }
 }
